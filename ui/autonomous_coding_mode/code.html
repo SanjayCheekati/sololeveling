@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solo Leveling × DSA - Autonomous Coding Mode</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4", // System Blue
+                        "primary-glow": "rgba(37, 175, 244, 0.5)",
+                        "secondary": "#9d4edd", // Shadow Purple
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0a1014", // Deepest background
+                        "panel-dark": "#101d23", // Component background
+                        "system-border": "#315668",
+                        "code-bg": "#0d151a",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar for the System Feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a1014; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #223c49; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #25aff4; 
+        }
+
+        /* Scanline effect overlay */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            position: absolute;
+            pointer-events: none;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 50;
+            opacity: 0.15;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px rgba(37, 175, 244, 0.5), 0 0 10px rgba(37, 175, 244, 0.3);
+        }
+        
+        .box-glow {
+            box-shadow: 0 0 15px rgba(37, 175, 244, 0.1);
+        }
+
+        /* Animated Progress Bar Stripe */
+        .progress-stripe {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 1rem 1rem;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen flex flex-col relative selection:bg-primary selection:text-black">
+<!-- Subtle Grid Background -->
+<div class="absolute inset-0 bg-[size:40px_40px] bg-grid-pattern opacity-[0.05] pointer-events-none"></div>
+<div class="scanlines"></div>
+<!-- Header HUD -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-[#25aff4]/30 bg-panel-dark/90 backdrop-blur-sm px-6 py-3 z-20 relative box-glow">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary animate-pulse">
+<span class="material-symbols-outlined text-2xl">diamond</span>
+</div>
+<h2 class="text-white text-xl font-bold leading-tight tracking-tight neon-text uppercase">Solo Leveling × DSA</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<!-- System Clock -->
+<div class="hidden lg:flex items-center gap-2 text-slate-400 font-mono text-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>SYS_TIME: 23:42:15</span>
+</div>
+<!-- Stats -->
+<div class="flex gap-3">
+<div class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary/10 border border-primary/30 text-primary text-sm font-bold tracking-wide transition hover:bg-primary/20 hover:shadow-[0_0_10px_rgba(37,175,244,0.4)]">
+<span class="truncate uppercase">Rank: Shadow Monarch</span>
+</div>
+<!-- XP Bar Container -->
+<div class="relative flex items-center min-w-[180px] h-9 bg-[#0a1014] rounded-lg border border-[#315668] overflow-hidden group cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 bg-primary/80 w-[84%] progress-stripe animate-[pulse_3s_ease-in-out_infinite]"></div>
+<span class="relative z-10 w-full text-center text-xs font-bold tracking-wider text-white mix-blend-difference">XP: 8450 / 10000</span>
+</div>
+</div>
+<!-- Avatar -->
+<div class="relative group">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 border border-primary/50 shadow-[0_0_10px_rgba(37,175,244,0.3)] group-hover:border-primary transition-colors" data-alt="Anime style avatar of a dark haired hunter with glowing blue eyes" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAOYEqAew567t7qrbQHEES-wiqFK_M8ND70FT_SKzIgK6glIg0EdZ-UQXpDpFLNhl9FZy1j3x58_SBdZosW6BpZhiipZ-z1_4Q1W_jPpdTnunqY0cu0juKPGIwA4HScP9FCYAzk4t__HIBMjJpiHlf6WYwfOHpqsXV3kwnRxvkQ5gPE9ZMu8EfIG7c1CYi0egFWjqS3OTt9HX2o4w4N210F0VMOMCW8auKyp_nTCuQ2HtZ6Kt5YF764NcvdfowLso2FIHA3rNIJvG-o");'></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#101d23]"></div>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 lg:p-6 overflow-hidden relative z-10">
+<!-- Left Column: Quest Brief (3 Columns) -->
+<aside class="hidden lg:flex lg:col-span-3 flex-col gap-4 overflow-y-auto pr-2 pb-10" style="scrollbar-width: thin;">
+<!-- Quest Card -->
+<div class="bg-panel-dark border border-[#315668] rounded-xl overflow-hidden box-glow flex flex-col shrink-0">
+<div class="p-5 border-b border-[#315668] bg-[#182b34]/50">
+<div class="flex items-center justify-between mb-2">
+<span class="text-primary text-xs font-mono uppercase tracking-widest">[ SYSTEM QUEST ]</span>
+<span class="material-symbols-outlined text-primary text-sm">priority_high</span>
+</div>
+<h1 class="text-white tracking-tight text-2xl font-bold leading-tight neon-text">The Ant King's Maze</h1>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<!-- Chips -->
+<div class="flex flex-wrap gap-2">
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded bg-red-900/30 border border-red-500/30 px-3">
+<span class="material-symbols-outlined text-red-400 text-[16px]">star</span>
+<p class="text-red-400 text-xs font-bold uppercase">S-Rank</p>
+</div>
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded bg-purple-900/30 border border-purple-500/30 px-3">
+<span class="material-symbols-outlined text-purple-400 text-[16px]">share</span>
+<p class="text-purple-400 text-xs font-bold uppercase">Graph Theory</p>
+</div>
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded bg-primary/10 border border-primary/30 px-3">
+<span class="material-symbols-outlined text-primary text-[16px]">account_tree</span>
+<p class="text-primary text-xs font-bold uppercase">BFS</p>
+</div>
+</div>
+<!-- Description -->
+<div class="prose prose-invert prose-sm max-w-none">
+<p class="text-slate-300 font-normal leading-relaxed">
+<strong class="text-primary">SYSTEM MESSAGE:</strong> The Ant King has constructed a labyrinth to protect the Queen. Navigate the <code class="bg-[#223c49] px-1 rounded text-primary">m x n</code> grid to find the shortest path.
+                        </p>
+<p class="text-slate-400 text-sm mt-2">
+                            Avoid traps marked with <code class="text-red-400">'X'</code>. Optimal solution requires <strong>O(V+E)</strong> time complexity. Failure results in immediate penalty.
+                        </p>
+</div>
+<!-- I/O Table -->
+<div class="mt-2 rounded-lg border border-[#315668] bg-[#0a1014] overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-[#182b34] text-xs uppercase font-mono text-slate-400">
+<tr>
+<th class="px-3 py-2">Input</th>
+<th class="px-3 py-2 border-l border-[#315668]">Output</th>
+</tr>
+</thead>
+<tbody class="font-mono text-xs">
+<tr class="border-t border-[#315668]">
+<td class="px-3 py-2 text-primary/80">[[0,0,1],[1,0,0]]</td>
+<td class="px-3 py-2 border-l border-[#315668] text-green-400">3</td>
+</tr>
+<tr class="border-t border-[#315668]">
+<td class="px-3 py-2 text-primary/80">[[0,1],[1,0]]</td>
+<td class="px-3 py-2 border-l border-[#315668] text-red-400">-1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Hints Card -->
+<div class="bg-panel-dark border border-[#315668] rounded-xl overflow-hidden p-4 flex items-center justify-between cursor-pointer hover:bg-[#182b34] transition group">
+<div class="flex items-center gap-3">
+<div class="bg-yellow-500/10 p-2 rounded-lg text-yellow-500 group-hover:text-yellow-400 transition">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-white">Unlock Hint</h4>
+<p class="text-xs text-slate-400">Cost: 50 Gold</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-500">lock</span>
+</div>
+</aside>
+<!-- Center Column: The Editor (6 Columns) -->
+<section class="col-span-1 lg:col-span-6 flex flex-col bg-[#101d23] border border-primary/40 rounded-xl shadow-[0_0_30px_rgba(37,175,244,0.15)] relative overflow-hidden h-full">
+<!-- Editor Top Bar -->
+<div class="flex items-center justify-between px-4 py-2 bg-[#182b34] border-b border-[#315668]">
+<div class="flex items-center gap-4">
+<!-- Tab -->
+<div class="flex items-center gap-2 bg-[#101d23] px-3 py-1.5 rounded-t-md border-t border-x border-primary/30 -mb-[9px] relative z-10">
+<span class="material-symbols-outlined text-primary text-sm">code</span>
+<span class="text-xs font-bold text-white tracking-wide">Solution.cpp</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<select class="bg-[#0a1014] border border-[#315668] text-white text-xs rounded px-2 py-1 font-mono focus:outline-none focus:border-primary">
+<option>C++ (GCC 9.2)</option>
+<option>Python 3</option>
+<option>Java</option>
+<option>JavaScript</option>
+</select>
+<button class="text-slate-400 hover:text-white transition" title="Reset Code">
+<span class="material-symbols-outlined text-sm">restart_alt</span>
+</button>
+<button class="text-slate-400 hover:text-white transition" title="Settings">
+<span class="material-symbols-outlined text-sm">settings</span>
+</button>
+</div>
+</div>
+<!-- Editor Area -->
+<div class="flex-1 flex overflow-hidden relative font-mono text-sm group/editor">
+<!-- Line Numbers -->
+<div class="w-12 bg-[#0c161b] text-slate-600 flex flex-col items-end pr-3 pt-4 border-r border-[#315668] select-none text-xs leading-6">
+<div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
+</div>
+<!-- Code Content -->
+<textarea class="flex-1 bg-[#0d151a] text-slate-300 p-4 border-none resize-none focus:ring-0 leading-6 selection:bg-primary/30 outline-none w-full h-full" spellcheck="false">class Solution {
+public:
+    int shortestPath(vector&lt;vector&lt;int&gt;&gt;&amp; grid) {
+        // SYSTEM: Initialize DP array
+        int n = grid.size();
+        int m = grid[0].size();
+        
+        // TODO: Implement BFS traversal
+        // Remember to check for traps (1)
+        
+        queue&lt;pair&lt;int, int=""&gt;&gt; q;
+        q.push({0, 0});
+        
+        // SHADOW EXTRACTION: Complete the logic...
+        
+        return -1; 
+    }
+};&lt;/pair&lt;int,&gt;&lt;/vector&lt;int&gt;</textarea>
+<!-- Decorative Glow Corner -->
+<div class="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-primary/10 to-transparent pointer-events-none"></div>
+</div>
+<!-- Action Bar (Bottom) -->
+<div class="p-4 bg-[#101d23] border-t border-[#315668] flex items-center justify-between relative z-20">
+<div class="flex items-center gap-2 text-xs font-mono text-slate-500">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span>SYSTEM ONLINE</span>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2 rounded-lg border border-[#315668] bg-[#182b34] text-white text-sm font-bold hover:bg-[#223c49] transition flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                        Run Test
+                    </button>
+<button class="px-6 py-2 rounded-lg bg-primary hover:bg-cyan-400 text-[#0a1014] text-sm font-bold shadow-[0_0_15px_rgba(37,175,244,0.5)] transition hover:scale-105 active:scale-95 flex items-center gap-2 relative overflow-hidden group">
+<span class="relative z-10 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm font-bold">bolt</span>
+                            SUBMIT
+                        </span>
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+</button>
+</div>
+</div>
+</section>
+<!-- Right Column: Metrics & Output (3 Columns) -->
+<aside class="hidden lg:flex lg:col-span-3 flex-col gap-4 overflow-y-auto">
+<!-- Performance Radial Graphs -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Time Complexity -->
+<div class="bg-panel-dark border border-[#315668] rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5"></div>
+<div class="relative w-20 h-20 rounded-full border-4 border-[#182b34] flex items-center justify-center mb-2">
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#25aff4" stroke-dasharray="75, 100" stroke-width="3"></path>
+</svg>
+<span class="text-lg font-bold text-white">Top 5%</span>
+</div>
+<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Runtime</p>
+<p class="text-primary text-sm font-mono">12 ms</p>
+</div>
+<!-- Memory Usage -->
+<div class="bg-panel-dark border border-[#315668] rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-purple-500/5"></div>
+<div class="relative w-20 h-20 rounded-full border-4 border-[#182b34] flex items-center justify-center mb-2">
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#9d4edd" stroke-dasharray="40, 100" stroke-width="3"></path>
+</svg>
+<span class="text-lg font-bold text-white">42%</span>
+</div>
+<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Memory</p>
+<p class="text-purple-400 text-sm font-mono">14.2 MB</p>
+</div>
+</div>
+<!-- Test Cases Console -->
+<div class="flex-1 bg-panel-dark border border-[#315668] rounded-xl flex flex-col overflow-hidden min-h-[300px]">
+<div class="px-4 py-3 border-b border-[#315668] bg-[#182b34]/50 flex justify-between items-center">
+<span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Test Cases</span>
+<span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30">ALL PASSED</span>
+</div>
+<div class="p-2 flex flex-col gap-2 overflow-y-auto">
+<!-- Case 1: Pass -->
+<div class="bg-[#0a1014] border-l-2 border-green-500 p-3 rounded-r flex flex-col gap-1 hover:bg-[#182b34] transition cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold text-white">Case #1</span>
+<span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+</div>
+<div class="text-[10px] text-slate-500 font-mono">Input: grid = [[0,1],[1,0]]</div>
+</div>
+<!-- Case 2: Pass -->
+<div class="bg-[#0a1014] border-l-2 border-green-500 p-3 rounded-r flex flex-col gap-1 hover:bg-[#182b34] transition cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold text-white">Case #2</span>
+<span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+</div>
+<div class="text-[10px] text-slate-500 font-mono">Input: grid = [[0,0,0],[1,1,0]]</div>
+</div>
+<!-- Case 3: Locked -->
+<div class="bg-[#0a1014] border-l-2 border-slate-700 p-3 rounded-r flex flex-col gap-1 opacity-60">
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold text-slate-400">Case #3 (Hidden)</span>
+<span class="material-symbols-outlined text-slate-600 text-sm">lock</span>
+</div>
+</div>
+</div>
+<!-- Console Output Area -->
+<div class="mt-auto border-t border-[#315668] bg-[#0a1014] p-3 font-mono text-xs">
+<div class="text-slate-500 mb-1">Standard Output:</div>
+<div class="text-slate-300">&gt; System initialized...</div>
+<div class="text-primary">&gt; Shadow extraction successful.</div>
+<div class="text-green-400">&gt; Algorithm optimized (O(N^2)).</div>
+</div>
+</div>
+<!-- Efficiency Banner -->
+<div class="bg-gradient-to-r from-[#101d23] to-[#182b34] border border-[#25aff4]/30 rounded-xl p-3 flex items-center gap-4 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary box-glow"></div>
+<div class="bg-primary/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">speed</span>
+</div>
+<div>
+<h5 class="text-sm font-bold text-white">Efficiency</h5>
+<p class="text-xs text-slate-400">Your solution beats <span class="text-primary font-bold">89%</span> of Hunters.</p>
+</div>
+</div>
+</aside>
+</main>
+<!-- Floating System Notification (Achievement) -->
+<div class="fixed bottom-8 right-8 z-50 animate-[slideUp_0.5s_ease-out_forwards]">
+<div class="relative bg-[#101d23]/95 backdrop-blur-md border border-primary/50 text-white p-4 rounded-lg shadow-[0_0_20px_rgba(37,175,244,0.3)] max-w-sm overflow-hidden group hover:scale-105 transition-transform duration-300">
+<!-- Glitch Border -->
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary animate-pulse"></div>
+<div class="flex gap-4 items-start">
+<div class="bg-primary/20 p-2 rounded flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary">military_tech</span>
+</div>
+<div>
+<p class="text-[10px] text-primary font-mono tracking-widest uppercase mb-1">System Alert</p>
+<h4 class="text-sm font-bold mb-1">Achievement Unlocked</h4>
+<p class="text-xs text-slate-300">"The First Step" - Solved an S-Rank problem under 5 minutes.</p>
+</div>
+<button class="text-slate-500 hover:text-white">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mobile Warning Overlay (Since this is desktop-first as requested) -->
+<div class="lg:hidden absolute inset-0 bg-[#0a1014] z-[100] flex items-center justify-center p-8 text-center">
+<div>
+<span class="material-symbols-outlined text-red-500 text-5xl mb-4">warning</span>
+<h2 class="text-xl font-bold text-white mb-2">System Incompatible</h2>
+<p class="text-slate-400">The Hunter's Workbench requires a larger display interface. Please access via Desktop.</p>
+</div>
+</div>
+</body></html>

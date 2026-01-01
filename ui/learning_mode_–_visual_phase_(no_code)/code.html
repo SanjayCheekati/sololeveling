@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solo Leveling × DSA - Visual Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4", // Electric Blue
+                        "primary-glow": "#25aff4aa",
+                        "system-purple": "#a855f7",
+                        "system-red": "#ef4444",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0a0e12", // Deep void black
+                        "surface-dark": "#131b24",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                    boxShadow: {
+                        "neon": "0 0 10px rgba(37, 175, 244, 0.5), 0 0 20px rgba(37, 175, 244, 0.3)",
+                        "neon-purple": "0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)",
+                        "glass": "0 4px 30px rgba(0, 0, 0, 0.1)",
+                    },
+                    backgroundImage: {
+                        "grid-pattern": "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Space Grotesk", sans-serif;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .glass-panel {
+            background: rgba(19, 27, 36, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(37, 175, 244, 0.2);
+        }
+        .grid-bg {
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation & System HUD -->
+<header class="shrink-0 z-50 glass-panel border-b border-[#25aff4]/30">
+<div class="px-6 py-3 flex items-center justify-between">
+<!-- Logo Area -->
+<div class="flex items-center gap-4">
+<div class="size-8 flex items-center justify-center text-primary shadow-neon rounded bg-primary/10">
+<span class="material-symbols-outlined">dataset</span>
+</div>
+<h1 class="text-white text-xl font-bold tracking-widest uppercase">Solo Leveling × DSA</h1>
+<div class="h-6 w-px bg-[#25aff4]/30 mx-2"></div>
+<div class="flex items-center gap-2 px-3 py-1 rounded bg-system-purple/10 border border-system-purple/30 text-system-purple text-xs font-bold tracking-wider shadow-neon-purple">
+                    RANK: E-HUNTER
+                </div>
+</div>
+<!-- Stats HUD (HP/MP) -->
+<div class="flex flex-1 justify-center gap-12 px-8">
+<!-- HP Bar -->
+<div class="flex flex-col gap-1 w-64">
+<div class="flex justify-between items-end text-xs font-bold tracking-wider text-[#25aff4]">
+<span>HP</span>
+<span>2400 / 2400</span>
+</div>
+<div class="h-2 w-full bg-[#101d23] rounded-sm overflow-hidden border border-[#25aff4]/20 relative">
+<div class="absolute inset-0 bg-[#25aff4] w-[100%] shadow-[0_0_10px_#25aff4]"></div>
+</div>
+</div>
+<!-- MP Bar -->
+<div class="flex flex-col gap-1 w-64">
+<div class="flex justify-between items-end text-xs font-bold tracking-wider text-system-purple">
+<span>MP (COGNITION)</span>
+<span>850 / 1200</span>
+</div>
+<div class="h-2 w-full bg-[#101d23] rounded-sm overflow-hidden border border-system-purple/20 relative">
+<div class="absolute inset-0 bg-system-purple w-[70%] shadow-[0_0_10px_#a855f7]"></div>
+</div>
+</div>
+</div>
+<!-- Right Nav -->
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-400">
+<a class="hover:text-primary transition-colors" href="#">Dungeon Map</a>
+<a class="hover:text-primary transition-colors" href="#">Profile</a>
+</nav>
+<button class="size-10 rounded-lg flex items-center justify-center bg-[#25aff4]/10 hover:bg-[#25aff4]/20 text-primary border border-[#25aff4]/30 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="size-10 rounded-full border-2 border-primary overflow-hidden shadow-neon bg-gray-800" data-alt="Avatar of a shadowed anime-style hunter character" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDVN51QQ1qZoovEeg7oGaT-VdoDylnneu9vj4aQ2-4orEmI4h6qque3CqRKzoXqvs4AxjKq_ly995gkEHqGtuwU81c2nE_63UCzP6nluXvWMH6Tn3fwJcBJWfqMlEiyVbULx4V7kedWIcON_t5kdD_58AuSjoas0MaC4RFRGUOEdD3tlprF50fCbr1vrjaG0juAKrAGBviH7xtAecu5ILLv7pj0LPTbCYZsWNLwRqaMoYMuyjbfJMt673j2QAYo7SFV8QYqgPmgGUc_'); background-size: cover;"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 relative flex overflow-hidden">
+<!-- Background Grid Effect -->
+<div class="absolute inset-0 bg-grid-pattern grid-bg opacity-20 pointer-events-none z-0"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent z-0"></div>
+<!-- Left Panel: Quest Tracker -->
+<aside class="w-80 relative z-10 p-6 flex flex-col gap-6 pointer-events-none">
+<div class="glass-panel p-5 rounded-xl border-l-4 border-l-primary shadow-lg pointer-events-auto animate-fade-in-left">
+<div class="flex items-center gap-2 mb-2 text-primary text-xs font-bold tracking-widest uppercase">
+<span class="material-symbols-outlined text-sm">flag</span>
+                    Current Quest
+                </div>
+<h2 class="text-2xl font-bold leading-tight text-white mb-2 shadow-black drop-shadow-md">Visualizing the Stack</h2>
+<p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                    The dungeon requires you to balance the stack structure. Push the correct energy cores to stabilize the system.
+                </p>
+<div class="space-y-3">
+<div class="flex items-center gap-3 text-sm text-white/80">
+<div class="size-4 rounded-full border border-primary bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</div>
+<span>Initialize Stack Container</span>
+</div>
+<div class="flex items-center gap-3 text-sm text-white">
+<div class="size-4 rounded-full border border-gray-500 bg-transparent flex items-center justify-center animate-pulse">
+<div class="size-2 bg-primary rounded-full"></div>
+</div>
+<span class="font-medium text-primary-glow">Push Value [42]</span>
+</div>
+<div class="flex items-center gap-3 text-sm text-gray-500">
+<div class="size-4 rounded-full border border-gray-700 bg-transparent"></div>
+<span>Pop Overflow Element</span>
+</div>
+</div>
+</div>
+<!-- Stats Mini-Card -->
+<div class="glass-panel p-4 rounded-lg pointer-events-auto">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs text-gray-400 uppercase tracking-wider">Session XP</span>
+<span class="text-xs text-primary font-bold">+150 XP</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-gray-400 uppercase tracking-wider">Streak</span>
+<span class="text-xs text-system-purple font-bold shadow-neon-purple drop-shadow-sm">GODLIKE</span>
+</div>
+</div>
+</aside>
+<!-- Center: The Arena (Visualization) -->
+<section class="flex-1 relative z-0 flex flex-col items-center justify-center pb-32">
+<!-- Floating Data Structure Title -->
+<div class="absolute top-8 text-center opacity-80">
+<div class="text-[10px] tracking-[0.3em] uppercase text-primary mb-1">Data Structure Type</div>
+<div class="text-3xl font-bold text-white tracking-widest flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">layers</span>
+                    LIFO STACK
+                </div>
+</div>
+<!-- The Visual Stack Container -->
+<div class="relative w-[400px] h-[500px] border-x-4 border-b-4 border-gray-700 rounded-b-xl bg-gray-900/40 backdrop-blur-sm flex flex-col-reverse p-4 gap-2 shadow-2xl items-center transition-all duration-300 hover:border-primary/50 group">
+<!-- Helper Lines / Pointers -->
+<div class="absolute -right-32 bottom-20 flex items-center gap-2 animate-bounce">
+<span class="text-primary font-bold text-sm tracking-wider">TOP POINTER</span>
+<div class="h-[1px] w-12 bg-primary"></div>
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</div>
+<!-- Empty State Ghost -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+<span class="text-6xl text-gray-500 font-thin tracking-widest">EMPTY</span>
+</div>
+<!-- Stack Items (Simulated) -->
+<!-- Item 1 -->
+<div class="w-full h-16 rounded-lg bg-surface-dark border border-primary/30 flex items-center justify-between px-6 shadow-lg transform translate-y-0 transition-all hover:bg-surface-dark/80 hover:border-primary cursor-pointer group/item relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-gray-400 text-xs font-mono">Index: 0</span>
+<span class="text-white text-xl font-bold font-mono group-hover/item:scale-110 transition-transform">1024</span>
+<span class="text-gray-500 text-xs font-mono">0x4F...</span>
+</div>
+<!-- Item 2 -->
+<div class="w-full h-16 rounded-lg bg-surface-dark border border-primary/30 flex items-center justify-between px-6 shadow-lg shadow-primary/5 transform translate-y-0 transition-all hover:bg-surface-dark/80 hover:border-primary cursor-pointer group/item relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-gray-400 text-xs font-mono">Index: 1</span>
+<span class="text-white text-xl font-bold font-mono group-hover/item:scale-110 transition-transform">512</span>
+<span class="text-gray-500 text-xs font-mono">0xA2...</span>
+</div>
+<!-- Item 3 (Being Pushed/Active) -->
+<div class="w-full h-16 rounded-lg bg-primary/20 border border-primary flex items-center justify-between px-6 shadow-[0_0_20px_rgba(37,175,244,0.3)] animate-pulse relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-white"></div>
+<span class="text-primary-glow text-xs font-mono">Index: 2</span>
+<span class="text-white text-xl font-bold font-mono">256</span>
+<span class="text-primary-glow text-xs font-mono">ACTIVE</span>
+<!-- Particle effect simulation -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent w-[50%] skew-x-12 translate-x-[-150%] animate-[shimmer_2s_infinite]"></div>
+</div>
+</div>
+</section>
+<!-- Right Panel: System Notifications -->
+<aside class="w-96 relative z-10 p-6 flex flex-col pointer-events-none">
+<!-- System Log -->
+<div class="mt-auto glass-panel p-4 rounded-xl border border-gray-700 pointer-events-auto">
+<div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+<span class="text-xs font-bold text-gray-400 uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-sm animate-spin">settings</span>
+                        System Log
+                    </span>
+<span class="text-[10px] text-gray-600 font-mono">v.2.4.0</span>
+</div>
+<div class="space-y-3 font-mono text-xs h-48 overflow-y-auto scrollbar-hide">
+<p class="text-gray-500">[10:42:01] Initializing arena...</p>
+<p class="text-gray-500">[10:42:02] Environment loaded.</p>
+<p class="text-primary">[10:42:15] <span class="font-bold">SYSTEM ALERT:</span> Stack underflow protection active.</p>
+<p class="text-white">[10:43:05] User Action: PUSH(256)</p>
+<div class="p-2 bg-primary/10 border border-primary/30 rounded text-primary-glow">
+<span class="block font-bold mb-1">PREDICTION REQUIRED:</span>
+                        What is the value at Top?
+                        <div class="mt-2 flex gap-2">
+<button class="flex-1 py-1 bg-primary/20 hover:bg-primary hover:text-white border border-primary/50 rounded transition-colors">256</button>
+<button class="flex-1 py-1 bg-transparent hover:bg-white/10 border border-gray-600 rounded transition-colors">512</button>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Bottom Action Deck -->
+<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-full max-w-3xl">
+<div class="flex items-end justify-center gap-4 perspective-[1000px]">
+<!-- Skill Card: PUSH -->
+<div class="group relative w-32 h-44 bg-surface-dark rounded-xl border border-primary/50 hover:border-primary hover:-translate-y-4 transition-all duration-300 cursor-grab active:cursor-grabbing shadow-lg hover:shadow-neon flex flex-col items-center justify-between p-3 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-full flex justify-between items-start">
+<span class="text-[10px] font-bold text-gray-400 group-hover:text-primary">CMD_01</span>
+<span class="material-symbols-outlined text-primary">add_circle</span>
+</div>
+<div class="text-center z-10">
+<span class="block text-2xl font-bold text-white mb-1">PUSH</span>
+<span class="text-[10px] text-gray-400 uppercase tracking-wide">Insert Element</span>
+</div>
+<div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+</div>
+<!-- Skill Card: POP -->
+<div class="group relative w-32 h-44 bg-surface-dark rounded-xl border border-system-red/30 hover:border-system-red hover:-translate-y-4 transition-all duration-300 cursor-grab active:cursor-grabbing shadow-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] flex flex-col items-center justify-between p-3 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-system-red/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-full flex justify-between items-start">
+<span class="text-[10px] font-bold text-gray-400 group-hover:text-system-red">CMD_02</span>
+<span class="material-symbols-outlined text-system-red">remove_circle</span>
+</div>
+<div class="text-center z-10">
+<span class="block text-2xl font-bold text-white mb-1">POP</span>
+<span class="text-[10px] text-gray-400 uppercase tracking-wide">Remove Top</span>
+</div>
+<div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-system-red w-3/4"></div>
+</div>
+</div>
+<!-- Skill Card: PEEK -->
+<div class="group relative w-32 h-44 bg-surface-dark rounded-xl border border-system-purple/50 hover:border-system-purple hover:-translate-y-4 transition-all duration-300 cursor-grab active:cursor-grabbing shadow-lg hover:shadow-neon-purple flex flex-col items-center justify-between p-3 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-system-purple/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-full flex justify-between items-start">
+<span class="text-[10px] font-bold text-gray-400 group-hover:text-system-purple">CMD_03</span>
+<span class="material-symbols-outlined text-system-purple">visibility</span>
+</div>
+<div class="text-center z-10">
+<span class="block text-2xl font-bold text-white mb-1">PEEK</span>
+<span class="text-[10px] text-gray-400 uppercase tracking-wide">Inspect Top</span>
+</div>
+<div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-system-purple w-1/2"></div>
+</div>
+</div>
+<!-- Skill Card: IS_EMPTY -->
+<div class="group relative w-32 h-44 bg-surface-dark rounded-xl border border-gray-600 hover:border-white hover:-translate-y-4 transition-all duration-300 cursor-grab active:cursor-grabbing shadow-lg flex flex-col items-center justify-between p-3 overflow-hidden">
+<div class="w-full flex justify-between items-start">
+<span class="text-[10px] font-bold text-gray-400">CMD_04</span>
+<span class="material-symbols-outlined text-gray-400 group-hover:text-white">check_box_outline_blank</span>
+</div>
+<div class="text-center z-10">
+<span class="block text-xl font-bold text-gray-300 group-hover:text-white mb-1">CHECK</span>
+<span class="text-[10px] text-gray-500 uppercase tracking-wide">Validate State</span>
+</div>
+<div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-white w-full opacity-50"></div>
+</div>
+</div>
+</div>
+<!-- Deck Helper Text -->
+<div class="text-center mt-6">
+<p class="text-xs text-gray-500 uppercase tracking-[0.2em] animate-pulse">Select a Skill Card to Execute Logic</p>
+</div>
+</div>
+</main>
+<style>
+        @keyframes shimmer {
+            0% { transform: translateX(-150%) skewX(12deg); }
+            100% { transform: translateX(150%) skewX(12deg); }
+        }
+        @keyframes fade-in-left {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-left {
+            animation: fade-in-left 0.8s ease-out forwards;
+        }
+    </style>
+</body></html>

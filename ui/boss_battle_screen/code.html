@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Solo Leveling × DSA - Boss Battle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f42525",
+                        "primary-glow": "#ff4d4d",
+                        "system-blue": "#3b82f6",
+                        "background-light": "#f8f5f5",
+                        "background-dark": "#1a0b0b",
+                        "panel-dark": "#231010",
+                        "border-dark": "#492222",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                        "mono": ["monospace"],
+                    },
+                    boxShadow: {
+                        "neon": "0 0 10px rgba(244, 37, 37, 0.5)",
+                        "neon-blue": "0 0 10px rgba(59, 130, 246, 0.5)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for that cyber feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a0b0b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #492222; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f42525; 
+        }
+        
+        .code-line {
+            counter-increment: line;
+        }
+        .code-line::before {
+            content: counter(line);
+            display: inline-block;
+            width: 2rem;
+            margin-right: 1rem;
+            color: #6b7280;
+            text-align: right;
+            font-size: 0.875rem;
+        }
+        .glitch-text {
+            text-shadow: 2px 0 #f42525, -2px 0 #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-x-hidden min-h-screen flex flex-col">
+<!-- Top System Nav -->
+<header class="sticky top-0 z-50 backdrop-blur-md bg-[#1a0b0b]/80 border-b border-border-dark px-6 py-3 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded bg-primary/20 border border-primary/50 text-primary animate-pulse">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight uppercase leading-none">System <span class="text-primary text-xs align-top">v2.4</span></h1>
+<p class="text-xs text-gray-400 font-mono tracking-widest">DUNGEON INSTANCE: #8921-A</p>
+</div>
+</div>
+<!-- Timer of Doom -->
+<div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2 bg-panel-dark border border-primary/30 px-4 py-1 rounded-full shadow-neon">
+<span class="material-symbols-outlined text-primary text-sm">timer</span>
+<span class="font-mono text-xl font-bold text-white tracking-widest">00:14:59</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end mr-2">
+<span class="text-sm font-bold">Hunter Jin-Woo</span>
+<div class="flex items-center gap-1">
+<span class="text-[10px] text-system-blue font-bold">LVL 75</span>
+<div class="w-16 h-1 bg-gray-800 rounded-full overflow-hidden">
+<div class="h-full bg-system-blue w-[75%] shadow-neon-blue"></div>
+</div>
+</div>
+</div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-system-blue shadow-neon-blue" data-alt="Anime style avatar of a young hunter with glowing blue eyes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhC6MkqPnHDIlmO2bRnf_GMfGNAjmIk0_hO8VCZxoV1OfyxYJI2gbvaFq3VgfD-APqeEipvE61V6rfvCHvorgo6coQKXVxkWSEouyLCmemS5vlEw4yLgh5crSYGzTBWxUMe-rYkP-6YzF-q5Wt6ra-vFXKeIVKfNTnfkHPsSwBG9Mm4vlXUId9KUVDZLntAGgN-l-x07Wgw0r8-4Hm9snOdEpQLy388BJqQ3kwBLzjQxSOfnqYnAeWjExP1gXcHtJuRoRAReBqP75e');"></div>
+<button class="flex items-center justify-center size-10 rounded-lg hover:bg-primary/20 transition-colors text-gray-400 hover:text-white">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-lg bg-red-950/50 hover:bg-primary transition-colors text-primary hover:text-white border border-primary/20 hover:border-primary">
+<span class="material-symbols-outlined">logout</span>
+</button>
+</div>
+</header>
+<main class="flex-1 layout-container flex flex-col max-w-[1600px] mx-auto w-full p-4 gap-4">
+<!-- Boss HUD Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<!-- Boss Visual & Health -->
+<div class="md:col-span-12 lg:col-span-12 relative group rounded-xl overflow-hidden border border-border-dark bg-panel-dark">
+<!-- Background Image with Overlay -->
+<div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay group-hover:scale-105 transition-transform duration-1000" data-alt="Intimidating dark fantasy monster silhouette with glowing red eyes surrounded by digital glitches" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD16pXIjvXHk3LPbVPVNk1TZfYgCtbRUadBQU2Ixn7rUBVKL0C1kN5lUsLALYmRN1lOZjfOpZY9rNeHp-7D0UmGl7KvKKLx-BGcrWNUDwrYQEQ35n89QjoUSZR4MdYJszeiBL213B_FuPChHE9U4xpuV8NLrW2a0KKAg8gk1dX-tK3SVMJmA1aybiPDgFCKtj5zcEF0LUxg2BE7nyBL3MJMasANkR06Mt5fPfhrc2c2R9msIPYpmLQYDCFA4kL-LelP0bcoC0ocDlBP');"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-background-dark via-background-dark/80 to-transparent"></div>
+<div class="relative p-6 flex flex-col md:flex-row items-end md:items-center justify-between gap-6">
+<div class="flex items-center gap-6 w-full md:w-auto">
+<div class="size-20 md:size-24 rounded-lg border-2 border-primary bg-black flex items-center justify-center shrink-0 shadow-neon relative overflow-hidden">
+<span class="absolute top-1 right-1 text-[10px] bg-primary text-white px-1 font-bold rounded-sm">BOSS</span>
+<span class="material-symbols-outlined text-6xl text-primary/80">bug_report</span>
+</div>
+<div class="flex flex-col gap-1 w-full">
+<div class="flex items-center gap-3">
+<h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight glitch-text">The Graph Guardian</h2>
+<span class="bg-primary/20 text-primary border border-primary/50 text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">S-Rank</span>
+</div>
+<div class="flex items-center gap-2 text-primary/80 text-sm font-mono">
+<span class="material-symbols-outlined text-sm">hub</span>
+<span>Binary Tree Inversion</span>
+</div>
+<!-- Health Bar -->
+<div class="w-full max-w-2xl mt-2">
+<div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-wider">
+<span class="text-primary">HP: 1,000,000 / 1,000,000</span>
+<span class="text-white">100%</span>
+</div>
+<div class="h-4 w-full bg-black/50 rounded-sm border border-border-dark overflow-hidden relative">
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImgridIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0wIDQwTDQwIDBIMjBMMCAyME00MCA0MEwwIDQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPjwvc3ZnPg==')] z-10 opacity-30"></div>
+<div class="h-full bg-gradient-to-r from-red-900 via-primary to-primary shadow-neon transition-all duration-500 w-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Battle Interface -->
+<section class="flex flex-col lg:flex-row gap-4 flex-1 min-h-[500px]">
+<!-- Left Panel: Quest Log (Problem) -->
+<div class="lg:w-1/3 flex flex-col gap-4">
+<div class="flex-1 bg-panel-dark border border-border-dark rounded-xl overflow-hidden flex flex-col">
+<div class="flex items-center justify-between px-4 py-3 bg-[#2d1515] border-b border-border-dark">
+<div class="flex items-center gap-2 text-white font-bold">
+<span class="material-symbols-outlined text-primary text-sm">assignment</span>
+<span>QUEST INFO</span>
+</div>
+<span class="text-[10px] bg-white/10 px-2 py-0.5 rounded text-gray-300">READ-ONLY</span>
+</div>
+<div class="p-5 overflow-y-auto max-h-[600px] text-gray-300 space-y-4">
+<div class="bg-black/20 p-4 rounded-lg border border-white/5">
+<p class="text-lg text-white font-bold mb-2">Objective</p>
+<p class="text-sm leading-relaxed">
+                                Given the <code class="bg-white/10 px-1 rounded text-primary">root</code> of a binary tree, invert the tree, and return its root.
+                                Every node's left and right children must be swapped.
+                            </p>
+</div>
+<div>
+<p class="text-sm font-bold text-white mb-2 uppercase tracking-wide">Example 1</p>
+<div class="bg-black p-3 rounded-lg border border-white/10 font-mono text-xs overflow-x-auto">
+<div class="flex items-start gap-4 mb-2">
+<span class="text-gray-500 select-none">Input:</span>
+<span class="text-green-400">root = [4,2,7,1,3,6,9]</span>
+</div>
+<div class="flex items-start gap-4">
+<span class="text-gray-500 select-none">Output:</span>
+<span class="text-primary-glow">[4,7,2,9,6,3,1]</span>
+</div>
+</div>
+</div>
+<div>
+<p class="text-sm font-bold text-white mb-2 uppercase tracking-wide">Constraints</p>
+<ul class="list-disc list-inside text-xs text-gray-400 space-y-1">
+<li>The number of nodes in the tree is in the range [0, 100].</li>
+<li>-100 &lt;= Node.val &lt;= 100</li>
+</ul>
+</div>
+<div class="mt-4 p-3 bg-blue-900/10 border border-blue-500/20 rounded flex gap-3 items-start">
+<span class="material-symbols-outlined text-system-blue text-sm mt-0.5">info</span>
+<p class="text-xs text-blue-200">Tip: Consider using recursion to traverse down the tree.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: The Code Weapon (Editor) -->
+<div class="lg:w-2/3 flex flex-col gap-4 relative">
+<!-- Editor Header -->
+<div class="bg-panel-dark border border-border-dark rounded-t-xl flex items-center justify-between px-4 py-2 select-none">
+<div class="flex items-center gap-0">
+<div class="px-4 py-2 bg-[#1a0b0b] border-t-2 border-primary text-white text-sm font-medium rounded-t">Solution.py</div>
+<div class="px-4 py-2 hover:bg-white/5 text-gray-400 text-sm font-medium cursor-pointer transition-colors">Test.py</div>
+</div>
+<div class="flex gap-2">
+<button class="p-1 hover:bg-white/10 rounded text-gray-400"><span class="material-symbols-outlined text-lg">undo</span></button>
+<button class="p-1 hover:bg-white/10 rounded text-gray-400"><span class="material-symbols-outlined text-lg">redo</span></button>
+<button class="p-1 hover:bg-white/10 rounded text-gray-400"><span class="material-symbols-outlined text-lg">settings</span></button>
+</div>
+</div>
+<!-- Code Editor Area -->
+<div class="flex-1 bg-[#0d0404] border-x border-b border-border-dark rounded-b-xl relative overflow-hidden font-mono text-sm group">
+<!-- Glowing border effect on focus (simulated) -->
+<div class="absolute inset-0 pointer-events-none border border-primary/0 group-hover:border-primary/10 transition-colors z-10 rounded-b-xl"></div>
+<div class="absolute inset-0 p-4 overflow-auto">
+<div class="code-line"><span class="text-purple-400">class</span> <span class="text-yellow-200">Solution</span>:</div>
+<div class="code-line pl-4"><span class="text-purple-400">def</span> <span class="text-blue-400">invertTree</span>(self, root: Optional[TreeNode]) -&gt; Optional[TreeNode]:</div>
+<div class="code-line pl-8"><span class="text-gray-500"># BASE CASE: If the node is null, return None</span></div>
+<div class="code-line pl-8"><span class="text-purple-400">if not</span> root:</div>
+<div class="code-line pl-12"><span class="text-purple-400">return</span> <span class="text-orange-300">None</span></div>
+<div class="code-line pl-8"> </div>
+<div class="code-line pl-8"><span class="text-gray-500"># SWAP: Exchange left and right children</span></div>
+<div class="code-line pl-8">root.left, root.right = root.right, root.left</div>
+<div class="code-line pl-8"> </div>
+<div class="code-line pl-8"><span class="text-gray-500"># RECURSION: Attack the children nodes</span></div>
+<div class="code-line pl-8">self.invertTree(root.left)</div>
+<div class="code-line pl-8">self.invertTree(root.right)</div>
+<div class="code-line pl-8"> </div>
+<div class="code-line pl-8"><span class="text-purple-400">return</span> root</div>
+<!-- Blinking Cursor -->
+<div class="code-line pl-8 inline-block animate-pulse w-2 h-4 bg-primary align-middle ml-1"></div>
+</div>
+</div>
+<!-- System Console / Output -->
+<div class="h-40 bg-black/80 border border-border-dark rounded-xl flex flex-col overflow-hidden backdrop-blur-sm">
+<div class="px-4 py-2 border-b border-white/10 flex justify-between items-center bg-[#150505]">
+<span class="text-xs font-bold text-gray-400 uppercase tracking-widest">System Log</span>
+<div class="flex gap-2">
+<span class="size-2 rounded-full bg-green-500"></span>
+<span class="text-[10px] text-green-500 font-mono">CONNECTED</span>
+</div>
+</div>
+<div class="p-3 font-mono text-xs space-y-1 overflow-y-auto text-gray-300">
+<p><span class="text-blue-500">[SYSTEM]</span> Initializing combat environment...</p>
+<p><span class="text-blue-500">[SYSTEM]</span> Enemy detected: Graph Guardian (S-Rank)</p>
+<p><span class="text-yellow-500">[WARNING]</span> Memory limit is tight. Optimize recursion depth.</p>
+<p class="opacity-50">&gt; Waiting for hunter input...</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Action Footer -->
+<footer class="mt-auto pt-4 pb-6 sticky bottom-0 z-40">
+<!-- Background gradient to fade out content behind sticky footer -->
+<div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background-dark via-background-dark to-transparent -z-10 pointer-events-none"></div>
+<div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-panel-dark/90 backdrop-blur-xl border border-border-dark p-4 rounded-xl shadow-2xl max-w-5xl mx-auto">
+<div class="flex items-center gap-6 w-full md:w-auto">
+<div class="hidden md:flex flex-col">
+<span class="text-[10px] text-gray-500 uppercase tracking-widest">Current Spell</span>
+<span class="text-white font-bold">Python 3.11</span>
+</div>
+<div class="h-8 w-px bg-white/10 hidden md:block"></div>
+<div class="flex items-center gap-2">
+<label class="flex items-center gap-2 cursor-pointer group">
+<div class="w-10 h-5 bg-black rounded-full border border-gray-700 relative group-hover:border-primary transition-colors">
+<div class="absolute left-1 top-1 size-3 bg-gray-500 rounded-full group-hover:bg-primary transition-all"></div>
+</div>
+<span class="text-xs text-gray-400 group-hover:text-white transition-colors">Auto-run</span>
+</label>
+</div>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 h-12 px-6 bg-transparent border border-white/20 text-white rounded-lg hover:bg-white/5 hover:border-white/40 transition-all font-bold tracking-wide group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">play_arrow</span>
+                        TEST RUN
+                    </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 h-12 px-8 bg-primary hover:bg-primary-glow text-white rounded-lg shadow-neon hover:shadow-[0_0_20px_rgba(244,37,37,0.7)] transition-all transform hover:-translate-y-0.5 font-bold tracking-widest uppercase text-sm relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
+<span class="material-symbols-outlined">swords</span>
+<span class="truncate">Attack (Submit)</span>
+</button>
+</div>
+</div>
+</footer>
+</main>
+<!-- Background decorative grid -->
+<div class="fixed inset-0 pointer-events-none -z-10" style="background-image: radial-gradient(circle at center, #231010 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3;"></div>
+</body></html>
