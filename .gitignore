@@ -51,3 +51,4 @@ development_prompt
 story.txt
 ui/
 .dist/
+.gitignore  
