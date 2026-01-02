@@ -36,20 +36,26 @@ export const useProgressStore = create((set, get) => ({
   
   fetchAllProgress: async () => {
     set({ loading: true });
-    const zones = ['arrays', 'stacks', 'binary-trees', 'recursion'];
-    
-    const progressMap = {};
-    for (const zone of zones) {
-      try {
-        const response = await api.get(`/progress/${zone}`);
-        progressMap[zone] = response.data;
-      } catch (error) {
-        progressMap[zone] = null;
+    try {
+      const response = await api.get('/progress');
+      const data = response.data?.data || response.data;
+      set({ progress: data, loading: false });
+      return data;
+    } catch (error) {
+      // Fallback to fetching by zone
+      const zones = ['arrays', 'stacks', 'binary-trees', 'recursion'];
+      const progressMap = {};
+      for (const zone of zones) {
+        try {
+          const response = await api.get(`/progress/${zone}`);
+          progressMap[zone] = response.data?.data || response.data;
+        } catch (e) {
+          progressMap[zone] = null;
+        }
       }
+      set({ progress: progressMap, loading: false });
+      return progressMap;
     }
-    
-    set({ progress: progressMap, loading: false });
-    return progressMap;
   },
   
   // Phase Management

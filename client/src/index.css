@@ -2,38 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 /* Base styles */
 body {
   margin: 0;
-  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Rajdhani', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0a0f14;
+  background-color: #0A0A0F;
   color: white;
   overflow-x: hidden;
 }
 
-/* Selection */
+/* Selection - Violet */
 ::selection {
-  background-color: #25aff4;
-  color: black;
+  background-color: rgba(139, 92, 246, 0.5);
+  color: white;
 }
 
-/* Glass Panel Effect */
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6D28D9 0%, #8B5CF6 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8B5CF6 0%, #A78BFA 100%);
+}
+
+/* Glass Panel Effect - Violet Tinted */
 .glass-panel {
-  background: rgba(19, 27, 35, 0.7);
+  background: rgba(18, 18, 31, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(37, 175, 244, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
-/* Neon Text Glow */
+.glass-panel-strong {
+  background: rgba(18, 18, 31, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+}
+
+/* System Panel */
+.system-panel {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 
+    0 0 0 1px rgba(139, 92, 246, 0.1),
+    0 0 30px rgba(139, 92, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Neon Text Glow - Violet */
 .neon-text {
-  text-shadow: 0 0 10px rgba(37, 175, 244, 0.8);
+  text-shadow: 
+    0 0 10px rgba(139, 92, 246, 0.8),
+    0 0 20px rgba(139, 92, 246, 0.5),
+    0 0 40px rgba(139, 92, 246, 0.3);
 }
 
-.neon-text-purple {
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
+.neon-text-cyan {
+  text-shadow: 
+    0 0 10px rgba(6, 182, 212, 0.8),
+    0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+.neon-text-strong {
+  text-shadow: 
+    0 0 10px rgba(139, 92, 246, 1),
+    0 0 30px rgba(139, 92, 246, 0.8),
+    0 0 60px rgba(139, 92, 246, 0.5),
+    0 0 100px rgba(139, 92, 246, 0.3);
 }
 
 /* Scanlines Effect */
@@ -47,45 +101,69 @@ body {
   );
   background-size: 100% 4px;
   pointer-events: none;
-  opacity: 0.15;
+  opacity: 0.1;
 }
 
-/* Grid Background */
+/* Grid Background - Violet */
 .grid-bg {
   background-image: 
-    linear-gradient(to right, rgba(37, 175, 244, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(37, 175, 244, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(to right, rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Hex Pattern Background */
+.hex-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill='none' stroke='rgba(139,92,246,0.08)' stroke-width='1'/%3E%3C/svg%3E");
 }
 
 /* Vignette Effect */
 .vignette {
-  background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(10,15,20,0.9) 100%);
+  background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(10,10,15,0.95) 100%);
 }
 
-/* Button hover glitch effect */
+/* System Border Glow */
+.system-border {
+  position: relative;
+}
+
+.system-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.5) 0%, rgba(6, 182, 212, 0.3) 50%, rgba(139, 92, 246, 0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glitch Effect */
 .glitch-hover:hover {
   animation: glitch-skew 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
 }
 
 @keyframes glitch-skew {
   0% { transform: skew(0deg); }
-  20% { transform: skew(-2deg); }
+  20% { transform: skew(-2deg); filter: hue-rotate(90deg); }
   40% { transform: skew(2deg); }
-  60% { transform: skew(-1deg); }
+  60% { transform: skew(-1deg); filter: hue-rotate(-90deg); }
   80% { transform: skew(1deg); }
-  100% { transform: skew(0deg); }
+  100% { transform: skew(0deg); filter: hue-rotate(0deg); }
 }
 
-/* Progress bar stripe animation */
+/* Progress bar stripe animation - Violet */
 .progress-stripe {
   background-image: linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.15) 25%,
+    rgba(255, 255, 255, 0.1) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.15) 75%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
     transparent 75%,
     transparent
   );
@@ -96,6 +174,284 @@ body {
 @keyframes stripe-move {
   0% { background-position: 0 0; }
   100% { background-position: 1rem 0; }
+}
+
+/* XP Bar Glow */
+.xp-bar {
+  background: linear-gradient(90deg, #6D28D9 0%, #8B5CF6 50%, #A78BFA 100%);
+  box-shadow: 
+    0 0 10px rgba(139, 92, 246, 0.5),
+    0 0 20px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Rank Badge Styles */
+.rank-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rank-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.5;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px currentColor; }
+  50% { box-shadow: 0 0 30px currentColor, 0 0 60px currentColor; }
+}
+
+/* System Message Styles */
+.system-message {
+  font-family: 'Orbitron', 'Rajdhani', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.system-notice {
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, transparent 100%);
+  border-left: 3px solid #8B5CF6;
+  padding: 0.75rem 1rem;
+}
+
+.system-warning {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, transparent 100%);
+  border-left: 3px solid #F59E0B;
+  padding: 0.75rem 1rem;
+}
+
+.system-error {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, transparent 100%);
+  border-left: 3px solid #EF4444;
+  padding: 0.75rem 1rem;
+}
+
+/* Floating Particles */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #8B5CF6;
+  border-radius: 50%;
+  filter: blur(1px);
+  animation: float-particle 10s infinite ease-in-out;
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+}
+
+/* Button Styles */
+.btn-system {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  color: #A78BFA;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.btn-system:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border-color: #8B5CF6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-system-primary {
+  background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+  border: none;
+  color: white;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-system-primary:hover {
+  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Code Editor Theme Override */
+.monaco-editor {
+  --vscode-editor-background: #0A0A0F !important;
+}
+
+/* Phase Indicator */
+.phase-locked {
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-locked::after {
+  content: 'CODE ACCESS LOCKED BY SYSTEM';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.95);
+  color: #8B5CF6;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.2em;
+  border: 2px dashed rgba(139, 92, 246, 0.3);
+}
+
+/* Dungeon Card */
+.dungeon-card {
+  background: linear-gradient(135deg, rgba(18, 18, 31, 0.9) 0%, rgba(26, 26, 46, 0.9) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.dungeon-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+  transform: translateY(-4px);
+}
+
+.dungeon-card-locked {
+  filter: grayscale(0.5);
+  opacity: 0.6;
+}
+
+/* Zone Portal */
+.zone-portal {
+  position: relative;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  animation: portal-pulse 3s ease-in-out infinite;
+}
+
+@keyframes portal-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 60px rgba(139, 92, 246, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+/* Stat Bar */
+.stat-bar {
+  height: 6px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6D28D9 0%, #8B5CF6 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Skill Icon */
+.skill-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(6, 182, 212, 0.2) 100%);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.skill-icon:hover {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+/* HP Bar (for Boss Battles) */
+.hp-bar {
+  height: 12px;
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.hp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #DC2626 0%, #EF4444 50%, #F87171 100%);
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* Timer Urgency */
+.timer-urgent {
+  animation: timer-pulse 0.5s ease-in-out infinite;
+  color: #EF4444;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+/* Rank Up Animation */
+.rank-up-glow {
+  animation: rank-up-burst 2s ease-out forwards;
+}
+
+@keyframes rank-up-burst {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.8);
+    transform: scale(0.8);
+  }
+  50% {
+    box-shadow: 0 0 100px 50px rgba(139, 92, 246, 0.4);
+    transform: scale(1.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+    transform: scale(1);
+  }
+}
+
+/* Shockwave Effect */
+.shockwave {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid #8B5CF6;
+  animation: shockwave-expand 1.5s ease-out forwards;
+}
+
+@keyframes shockwave-expand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 500px;
+    height: 500px;
+    opacity: 0;
+    margin-left: -250px;
+    margin-top: -250px;
+  }
 }
 
 /* Rank Badge Shine Effect */

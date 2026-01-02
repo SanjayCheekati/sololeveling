@@ -78,30 +78,67 @@ export const userAPI = {
 // Problems
 export const problemAPI = {
   getAll: (params) => api.get('/problems', { params }),
-  getBySlug: (slug) => api.get(`/problems/${slug}`),
-  getByZone: (zone) => api.get('/problems', { params: { zone } }),
-  unlockHint: (slug, hintIndex) => api.post(`/problems/${slug}/hints/${hintIndex}`)
+  getById: (slug, phase) => api.get(`/problems/${slug}`, { params: { phase } }),
+  getBySlug: (slug, phase) => api.get(`/problems/${slug}`, { params: { phase } }),
+  getByZone: (zone) => api.get(`/problems/zone/${zone}`),
+  unlockHint: (id, hintIndex) => api.post(`/problems/${id}/hint`, { hintIndex })
 };
 
 // Progress
 export const progressAPI = {
+  getAll: () => api.get('/progress'),
   getByZone: (zone) => api.get(`/progress/${zone}`),
-  completePhase: (zone, problemId, phase) => 
-    api.post(`/progress/${zone}/complete-phase`, { problemId, phase }),
-  savePrediction: (zone, problemId, prediction) =>
-    api.post(`/progress/${zone}/prediction`, { problemId, prediction }),
-  checkUnlock: (zone) => api.post(`/progress/${zone}/check-unlock`),
-  getStats: (zone) => api.get(`/progress/${zone}/stats`)
+  completeVisualization: (zone) => 
+    api.post('/progress/complete-visualization', { zone }),
+  completeGuided: (zone) => 
+    api.post('/progress/complete-guided', { zone }),
+  // Generic method for completing any phase (routes to specific endpoints)
+  completePhase: (problemSlug, phase, zone) => {
+    if (phase === 'visualization') {
+      return api.post('/progress/complete-visualization', { zone, problemSlug });
+    } else if (phase === 'guided') {
+      return api.post('/progress/complete-guided', { zone, problemSlug });
+    }
+    return api.post('/progress/complete-autonomous', { zone, problemSlug });
+  },
+  savePrediction: (problemId, predictionIndex, answer, correct) =>
+    api.post('/progress/prediction', { problemId, predictionIndex, answer, correct }),
+  unlockZone: (zone) => api.post('/progress/unlock-zone', { zone }),
+  defeatBoss: (zone, bossId, timeToDefeat, hintsUsed) =>
+    api.post('/progress/defeat-boss', { zone, bossId, timeToDefeat, hintsUsed }),
+  getStats: () => api.get('/progress/stats')
 };
 
-// Code Execution
+// Code Execution (routes are /api/execute/*)
 export const executionAPI = {
+  runCode: (data) => api.post('/execute/run', data),
+  submitSolution: (data) => api.post('/execute/submit', data),
   run: (code, problemId, testInput) => 
     api.post('/execute/run', { code, problemId, testInput }),
-  submit: (code, problemId, phase, hintsUsed, timeSpent) =>
-    api.post('/execute/submit', { code, problemId, phase, hintsUsed, timeSpent }),
+  submit: (code, problemId, phase, hintsUsed, timeSpent, predictionsCorrect) =>
+    api.post('/execute/submit', { code, problemId, phase, hintsUsed, timeSpent, predictionsCorrect }),
   validate: (code, problemId) =>
     api.post('/execute/validate', { code, problemId })
+};
+
+// Boss Battles
+export const bossAPI = {
+  getBoss: (zoneId) => api.get(`/problems/zone/${zoneId}`, { params: { isBossBattle: true } }),
+  submitBossAttempt: (code, problemId, phase, timeSpent) =>
+    api.post('/execute/submit', { code, problemId, phase, timeSpent })
+};
+
+// Rank System
+export const rankAPI = {
+  checkRankUp: () => api.get('/users/check-rank'),
+  performRankUp: () => api.post('/users/rank-up')
+};
+
+// Zone Management  
+export const zoneAPI = {
+  getAll: () => api.get('/problems/zones'),
+  unlock: (zone) => api.post('/progress/unlock-zone', { zone }),
+  getProgress: (zone) => api.get(`/progress/${zone}`)
 };
 
 export default api;

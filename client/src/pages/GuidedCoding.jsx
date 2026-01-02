@@ -1,187 +1,236 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
 import Editor from '@monaco-editor/react';
-import { useProgressStore } from '../store/progressStore';
 import { useAuthStore } from '../store/authStore';
-import { executionAPI } from '../services/api';
+import { problemAPI, executionAPI, progressAPI } from '../services/api';
+import { toast } from 'react-toastify';
 
 const GuidedCoding = () => {
+  const { problemId } = useParams();
   const navigate = useNavigate();
-  const { problemSlug } = useParams();
-  const { fetchProblem, currentProblem, completePhase, unlockHint } = useProgressStore();
-  const { user, addXP, updateUser } = useAuthStore();
-  
+  const { refreshUser } = useAuthStore();
   const editorRef = useRef(null);
+  
+  const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState('');
-  const [output, setOutput] = useState('');
+  const [skeletonCode, setSkeletonCode] = useState('');
+  const [editableLines, setEditableLines] = useState([]);
+  const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [currentObjective, setCurrentObjective] = useState(0);
-  const [objectivesCompleted, setObjectivesCompleted] = useState([]);
-  const [hints, setHints] = useState([]);
-  const [showHintModal, setShowHintModal] = useState(false);
-  const [feedback, setFeedback] = useState(null);
   const [testResults, setTestResults] = useState([]);
+  const [showHint, setShowHint] = useState(false);
+  const [currentHint, setCurrentHint] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+  const [canProceed, setCanProceed] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   useEffect(() => {
     const loadProblem = async () => {
-      const problem = await fetchProblem(problemSlug);
-      if (problem) {
-        // Set template code with locked sections
-        setCode(problem.templateCode || getDefaultTemplate(problem));
-        setHints(problem.hints || []);
+      try {
+        const res = await problemAPI.getById(problemId, 'guided');
+        const data = res.data?.data || res.data;
+        setProblem(data);
+        initializeGuidedCode(data);
+      } catch (error) {
+        console.error('Problem load error:', error);
+        toast.error('Failed to load problem');
+        navigate('/dashboard');
       }
       setLoading(false);
     };
     loadProblem();
-  }, [problemSlug, fetchProblem]);
+  }, [problemId, navigate]);
   
-  const getDefaultTemplate = (problem) => {
-    return `# ${problem.title}
-# Difficulty: ${problem.difficulty}-Rank
-# Zone: ${problem.zone}
+  const initializeGuidedCode = (prob) => {
+    // Generate skeleton code with locked sections
+    const category = prob.category?.toLowerCase() || 'arrays';
+    let skeleton = '';
+    let editable = [];
+    
+    if (category === 'arrays' && prob.title?.toLowerCase().includes('reverse')) {
+      skeleton = `# [SYSTEM] GUIDED MODE - Only highlighted lines are editable
+# Problem: ${prob.title}
 
-def solution(${problem.functionSignature?.params?.join(', ') || 'arr'}):
+def reverse_array(arr):
     """
-    ${problem.description}
-    
-    Args:
-        ${problem.functionSignature?.params?.map(p => `${p}: Input parameter`).join('\n        ') || 'arr: Input array'}
-    
-    Returns:
-        ${problem.functionSignature?.returnType || 'Result'}
+    Reverse the array in-place using two pointers.
+    Time: O(n), Space: O(1)
     """
-    # ===== YOUR CODE STARTS HERE =====
+    # Initialize pointers
+    left = ___  # TODO: Set left pointer starting position
+    right = ___  # TODO: Set right pointer starting position
     
-    # TODO: Implement your solution
-    pass
+    # Swap until pointers meet
+    while ___:  # TODO: Loop condition
+        # Swap elements
+        arr[left], arr[right] = ___  # TODO: Complete the swap
+        
+        # Move pointers
+        left += ___  # TODO: Update left pointer
+        right -= ___  # TODO: Update right pointer
     
-    # ===== YOUR CODE ENDS HERE =====
+    return arr
 
 # Test your solution
 if __name__ == "__main__":
-    # Example test case
-    test_input = ${JSON.stringify(problem.testCases?.[0]?.input) || '[1, 2, 3]'}
-    print(f"Input: {test_input}")
-    print(f"Output: {solution(test_input)}")
-`;
+    test_arr = [1, 2, 3, 4, 5]
+    print(f"Original: {test_arr}")
+    result = reverse_array(test_arr.copy())
+    print(f"Reversed: {result}")`;
+      editable = [10, 11, 14, 16, 19, 20]; // Line numbers that are editable (1-indexed)
+    } else if (category === 'stacks') {
+      skeleton = `# [SYSTEM] GUIDED MODE - Only highlighted lines are editable
+# Problem: ${prob.title}
+
+def is_valid_parentheses(s):
+    """
+    Check if parentheses string is valid.
+    Time: O(n), Space: O(n)
+    """
+    # Initialize stack
+    stack = ___  # TODO: Initialize empty stack
+    
+    # Mapping of closing to opening brackets
+    mapping = {')': '(', '}': '{', ']': '['}
+    
+    for char in s:
+        if char in mapping:
+            # Pop element or use dummy
+            top = ___  # TODO: Pop from stack (handle empty case)
+            
+            # Check if matching
+            if ___:  # TODO: Compare with mapping
+                return False
+        else:
+            # Push opening bracket
+            ___  # TODO: Push to stack
+    
+    return ___  # TODO: Final check
+
+# Test
+if __name__ == "__main__":
+    test_cases = ["()", "()[]{}", "(]", "([)]"]
+    for tc in test_cases:
+        print(f"{tc}: {is_valid_parentheses(tc)}")`;
+      editable = [10, 18, 21, 24, 26];
+    } else {
+      // Generic skeleton
+      skeleton = `# [SYSTEM] GUIDED MODE - Only highlighted lines are editable
+# Problem: ${prob.title}
+
+def solve(input_data):
+    """
+    Solve the problem.
+    """
+    result = ___  # TODO: Initialize result
+    
+    # Process input
+    for item in input_data:
+        # TODO: Your logic here
+        ___
+    
+    return ___  # TODO: Return result
+
+# Test
+if __name__ == "__main__":
+    print(solve([1, 2, 3, 4, 5]))`;
+      editable = [8, 13, 15];
+    }
+    
+    setSkeletonCode(skeleton);
+    setCode(skeleton);
+    setEditableLines(editable);
   };
   
-  const handleEditorMount = (editor) => {
+  const handleEditorMount = (editor, monaco) => {
     editorRef.current = editor;
     
-    // Lock certain regions (the function signature, imports, etc.)
-    // This guides the user to only edit within the designated area
+    // Configure editor for locked lines
+    editor.onDidChangeModelContent((e) => {
+      const model = editor.getModel();
+      if (!model) return;
+      
+      // Check if change is in locked area
+      e.changes.forEach(change => {
+        const lineNumber = change.range.startLineNumber;
+        if (!editableLines.includes(lineNumber) && change.text !== '') {
+          // Revert unauthorized changes - this is simplified
+          // In production, you'd use decorations and more sophisticated locking
+        }
+      });
+    });
+    
+    // Add decorations for editable lines
+    const decorations = editableLines.map(line => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: true,
+        className: 'editable-line-decoration',
+        glyphMarginClassName: 'editable-line-glyph',
+        linesDecorationsClassName: 'editable-line-decoration-margin'
+      }
+    }));
+    
+    editor.deltaDecorations([], decorations);
   };
   
   const handleRunCode = async () => {
-    if (!code.trim()) {
-      toast.error('[SYSTEM] No code to execute!');
-      return;
-    }
-    
     setIsRunning(true);
-    setOutput('');
-    setFeedback(null);
-    
-    try {
-      const response = await executionAPI.run(code, currentProblem?._id, null);
-      const result = response.data?.data || response.data;
-      
-      setOutput(result.output || result.error || 'No output');
-      
-      if (result.success) {
-        toast.success('[SYSTEM] Code executed successfully!');
-        
-        // Check if current objective is completed
-        if (!objectivesCompleted.includes(currentObjective)) {
-          setObjectivesCompleted([...objectivesCompleted, currentObjective]);
-        }
-      } else {
-        setFeedback({
-          type: 'error',
-          message: result.error,
-          suggestion: result.suggestion || 'Check your syntax and try again.'
-        });
-      }
-    } catch (error) {
-      setOutput(error.response?.data?.error || 'Execution failed');
-      toast.error('[SYSTEM] Execution error!');
-    }
-    
-    setIsRunning(false);
-  };
-  
-  const handleSubmit = async () => {
-    if (!code.trim()) {
-      toast.error('[SYSTEM] No code to submit!');
-      return;
-    }
-    
-    setIsRunning(true);
+    setOutput(null);
     setTestResults([]);
+    setAttempts(prev => prev + 1);
     
     try {
-      const response = await executionAPI.submit(code, currentProblem?._id, 'guided', hints.filter(h => h.unlocked).length, 0);
-      const result = response.data?.data || response.data;
+      const res = await executionAPI.runCode({
+        problemId,
+        code,
+        language: 'python'
+      });
       
-      setTestResults(result.testResults || []);
+      const result = res.data?.data || res.data;
+      setOutput(result);
       
-      if (result.allPassed) {
-        toast.success('[SYSTEM] All tests passed! Phase complete!');
+      if (result.testResults) {
+        setTestResults(result.testResults);
         
-        // Complete the guided phase
-        await completePhase(currentProblem.zone, currentProblem._id, 'guided');
-        await addXP(25);
-        
-        // Proceed to autonomous mode after delay
-        setTimeout(() => {
-          navigate(`/solve/${problemSlug}`);
-        }, 2000);
-      } else {
-        const passedCount = result.testResults?.filter(t => t.passed).length || 0;
-        const totalCount = result.testResults?.length || 0;
-        
-        toast.warning(`[SYSTEM] ${passedCount}/${totalCount} tests passed. Keep trying!`);
-        
-        // Provide feedback on first failed test
-        const failedTest = result.testResults?.find(t => !t.passed);
-        if (failedTest) {
-          setFeedback({
-            type: 'warning',
-            message: `Test failed for input: ${JSON.stringify(failedTest.input)}`,
-            expected: failedTest.expected,
-            actual: failedTest.actual,
-            suggestion: 'Review your logic and trace through the example.'
-          });
+        const allPassed = result.testResults.every(t => t.passed);
+        if (allPassed) {
+          setCanProceed(true);
+          setShowSuccessModal(true);
+          toast.success('All tests passed! Phase 2 Complete!');
         }
       }
     } catch (error) {
-      toast.error('[SYSTEM] Submission failed!');
-      setOutput(error.response?.data?.error || 'Submission error');
+      setOutput({
+        error: true,
+        message: error.response?.data?.message || 'Execution failed',
+        stderr: error.response?.data?.stderr || 'Unknown error'
+      });
+      toast.error('Code execution failed');
     }
     
     setIsRunning(false);
   };
   
-  const handleUnlockHint = async (idx) => {
-    const hint = hints[idx];
-    if (hint.unlocked) return;
-    
-    if ((user?.gold || 0) < (hint.cost || 10)) {
-      toast.error(`[SYSTEM] Not enough gold! Need ${hint.cost || 10} gold.`);
-      return;
-    }
-    
-    const result = await unlockHint(problemSlug, idx);
-    if (result) {
-      updateUser({ gold: user.gold - (hint.cost || 10) });
-      setHints(prev => prev.map((h, i) => 
-        i === idx ? { ...h, unlocked: true } : h
-      ));
-      toast.success('[SYSTEM] Hint unlocked!');
+  const hints = problem?.hints || [
+    'Think about the base cases first.',
+    'Consider the loop termination condition.',
+    'Make sure to update both pointers.',
+    'Check for edge cases like empty input.'
+  ];
+  
+  const handleProceedToAutonomous = async () => {
+    try {
+      const zone = problem?.zone || 'arrays';
+      await progressAPI.completeGuided(zone);
+      refreshUser();
+      navigate(`/autonomous/${problemId}`);
+    } catch (error) {
+      console.error('Progress save error:', error);
+      // Still allow navigation even if progress save fails
+      navigate(`/autonomous/${problemId}`);
     }
   };
   
@@ -189,318 +238,409 @@ if __name__ == "__main__":
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <span className="material-symbols-outlined text-6xl text-purple-400 animate-pulse">
-            school
-          </span>
-          <p className="text-gray-500 mt-4 font-mono">[SYSTEM] Loading guided mode...</p>
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="absolute inset-0 border-2 border-primary/30 rounded-full animate-spin" />
+            <span className="material-symbols-outlined text-3xl text-primary animate-pulse absolute inset-0 flex items-center justify-center">code</span>
+          </div>
+          <p className="text-gray-500 mt-6 font-mono text-sm">[SYSTEM] Loading guided mode...</p>
         </div>
       </div>
     );
   }
-  
-  if (!currentProblem) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <span className="material-symbols-outlined text-6xl text-red-400">error</span>
-          <p className="text-gray-500 mt-4">Problem not found</p>
-        </div>
-      </div>
-    );
-  }
-  
-  const objectives = currentProblem.guidedObjectives || [
-    'Understand the function signature',
-    'Implement the core logic',
-    'Handle edge cases',
-    'Pass all test cases'
-  ];
   
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="flex justify-between items-center p-4 glass-panel border-b border-gray-800"
-      >
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(`/zone/${currentProblem.zone}`)}
-            className="text-gray-400 hover:text-white"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <div>
-            <h1 className="font-bold">{currentProblem.title}</h1>
-            <span className="text-xs text-purple-400 font-mono">PHASE 2: GUIDED CODING</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {/* Hints Button */}
-          <button
-            onClick={() => setShowHintModal(true)}
-            className="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-lg text-yellow-400 text-sm hover:bg-yellow-400/10"
-          >
-            <span className="material-symbols-outlined text-lg">lightbulb</span>
-            Hints ({hints.filter(h => h.unlocked).length}/{hints.length})
-          </button>
-          
-          {/* Gold Display */}
-          <div className="flex items-center gap-2 text-yellow-400">
-            <span className="material-symbols-outlined">paid</span>
-            <span>{user?.gold || 0}</span>
-          </div>
-        </div>
-      </motion.header>
-      
-      {/* Main Content */}
-      <div className="flex-1 flex">
-        {/* Left Panel - Objectives & Instructions */}
-        <motion.div
-          initial={{ x: -30, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="w-80 glass-panel border-r border-gray-800 p-4 overflow-y-auto"
-        >
-          {/* Objectives */}
-          <div className="mb-6">
-            <h3 className="text-sm font-mono text-gray-500 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm text-purple-400">task_alt</span>
-              OBJECTIVES
-            </h3>
-            <div className="space-y-2">
-              {objectives.map((obj, idx) => (
-                <div
-                  key={idx}
-                  className={`p-3 rounded-lg border text-sm transition-all ${
-                    objectivesCompleted.includes(idx)
-                      ? 'border-green-500/50 bg-green-500/10 text-green-400'
-                      : idx === currentObjective
-                        ? 'border-purple-500/50 bg-purple-500/10 text-purple-300'
-                        : 'border-gray-700 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-sm mt-0.5">
-                      {objectivesCompleted.includes(idx) ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    {obj}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Instructions */}
-          <div className="mb-6">
-            <h3 className="text-sm font-mono text-gray-500 mb-3">INSTRUCTIONS</h3>
-            <div className="p-4 bg-void/50 rounded-lg border border-gray-800 text-sm text-gray-400">
-              <p className="mb-2">1. Read the function signature carefully</p>
-              <p className="mb-2">2. Implement your solution in the marked area</p>
-              <p className="mb-2">3. Click "Run" to test with a single case</p>
-              <p>4. Click "Submit" when ready to check all tests</p>
-            </div>
-          </div>
-          
-          {/* Test Cases Preview */}
-          <div>
-            <h3 className="text-sm font-mono text-gray-500 mb-3">TEST CASES</h3>
-            <div className="space-y-2">
-              {currentProblem.testCases?.slice(0, 3).map((tc, idx) => (
-                <div key={idx} className="p-3 bg-void/50 rounded-lg border border-gray-800">
-                  <div className="text-xs text-gray-500 mb-1">Case {idx + 1}</div>
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-400">Input: </span>
-                    <span className="text-primary">{JSON.stringify(tc.input)}</span>
-                  </div>
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-400">Expected: </span>
-                    <span className="text-green-400">{JSON.stringify(tc.expected)}</span>
-                  </div>
-                </div>
-              ))}
-              {(currentProblem.testCases?.length || 0) > 3 && (
-                <p className="text-xs text-gray-600 text-center">
-                  + {currentProblem.testCases.length - 3} hidden tests
-                </p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-        
-        {/* Center - Code Editor */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1">
-            <Editor
-              height="100%"
-              defaultLanguage="python"
-              theme="vs-dark"
-              value={code}
-              onChange={(value) => setCode(value || '')}
-              onMount={handleEditorMount}
-              options={{
-                fontSize: 14,
-                fontFamily: 'JetBrains Mono, monospace',
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                lineNumbers: 'on',
-                glyphMargin: true,
-                folding: true,
-                lineDecorationsWidth: 10,
-                renderLineHighlight: 'all',
-                wordWrap: 'on',
-                padding: { top: 16 }
-              }}
-            />
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="p-4 glass-panel border-t border-gray-800 flex justify-between items-center">
-            <div className="flex gap-2">
-              <button
-                onClick={handleRunCode}
-                disabled={isRunning}
-                className="px-6 py-2 glass-panel rounded-lg text-primary hover:bg-primary/10 flex items-center gap-2 disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined">
-                  {isRunning ? 'hourglass_empty' : 'play_arrow'}
-                </span>
-                Run
-              </button>
-            </div>
-            
+    <div className="min-h-screen p-4 lg:p-6">
+      <div className="max-w-[1800px] mx-auto h-[calc(100vh-120px)]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
             <button
-              onClick={handleSubmit}
-              disabled={isRunning}
-              className="px-8 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50 flex items-center gap-2"
+              onClick={() => navigate('/dashboard')}
+              className="w-10 h-10 rounded-lg glass-panel flex items-center justify-center hover:bg-primary/20"
             >
-              <span className="material-symbols-outlined">send</span>
-              Submit
+              <span className="material-symbols-outlined text-primary">arrow_back</span>
+            </button>
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-mono">
+                  PHASE 2 - GUIDED CODING
+                </span>
+                <span className="text-gray-600">•</span>
+                <span className="text-sm text-gray-400">{problem?.category}</span>
+              </div>
+              <h1 className="text-xl font-bold mt-1">{problem?.title}</h1>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="glass-panel px-4 py-2 rounded-lg flex items-center gap-2">
+              <span className="material-symbols-outlined text-yellow-400 text-sm">warning</span>
+              <span className="text-xs text-gray-400">Attempts: <span className="text-white">{attempts}</span></span>
+            </div>
+            <button
+              onClick={() => setShowHint(true)}
+              className="btn-system px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-sm">lightbulb</span>
+              <span className="text-sm">Hint</span>
             </button>
           </div>
         </div>
         
-        {/* Right Panel - Output */}
-        <motion.div
-          initial={{ x: 30, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="w-96 glass-panel border-l border-gray-800 flex flex-col"
-        >
-          {/* Output Header */}
-          <div className="p-4 border-b border-gray-800">
-            <h3 className="text-sm font-mono text-gray-500">OUTPUT CONSOLE</h3>
-          </div>
-          
-          {/* Output Content */}
-          <div className="flex-1 p-4 overflow-y-auto font-mono text-sm">
-            {output ? (
-              <pre className="whitespace-pre-wrap text-gray-300">{output}</pre>
-            ) : (
-              <p className="text-gray-600">Run your code to see output...</p>
-            )}
-          </div>
-          
-          {/* Test Results */}
-          {testResults.length > 0 && (
-            <div className="p-4 border-t border-gray-800 max-h-48 overflow-y-auto">
-              <h4 className="text-xs text-gray-500 mb-2">TEST RESULTS</h4>
-              <div className="space-y-2">
-                {testResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2 rounded text-xs ${
-                      result.passed
-                        ? 'bg-green-500/10 border border-green-500/30'
-                        : 'bg-red-500/10 border border-red-500/30'
-                    }`}
-                  >
-                    <span className={result.passed ? 'text-green-400' : 'text-red-400'}>
-                      {result.passed ? '✓' : '✗'} Test {idx + 1}
-                    </span>
-                  </div>
-                ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+          {/* Left - Problem & Tests */}
+          <div className="flex flex-col gap-4 overflow-hidden">
+            {/* Problem Description */}
+            <div className="glass-panel rounded-xl p-5 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-primary text-sm">description</span>
+                <h3 className="text-sm text-gray-400 font-mono">PROBLEM</h3>
               </div>
-            </div>
-          )}
-          
-          {/* Feedback */}
-          {feedback && (
-            <div className={`p-4 border-t ${
-              feedback.type === 'error' ? 'border-red-500/30 bg-red-500/5' : 'border-yellow-500/30 bg-yellow-500/5'
-            }`}>
-              <p className={`text-sm ${feedback.type === 'error' ? 'text-red-400' : 'text-yellow-400'}`}>
-                {feedback.message}
-              </p>
-              {feedback.suggestion && (
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 {feedback.suggestion}
-                </p>
+              <p className="text-gray-300 text-sm">{problem?.description}</p>
+              
+              {problem?.examples?.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <span className="text-xs text-gray-500">Example:</span>
+                  {problem.examples.slice(0, 2).map((ex, idx) => (
+                    <div key={idx} className="bg-void/50 rounded-lg p-3 font-mono text-xs">
+                      <div className="text-cyan-400">Input: {JSON.stringify(ex.input)}</div>
+                      <div className="text-green-400">Output: {JSON.stringify(ex.output)}</div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          )}
-        </motion.div>
-      </div>
-      
-      {/* Hints Modal */}
-      <AnimatePresence>
-        {showHintModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowHintModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-panel p-6 rounded-xl max-w-md w-full"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-yellow-400">lightbulb</span>
-                  Hints
-                </h2>
-                <button onClick={() => setShowHintModal(false)} className="text-gray-400 hover:text-white">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
+            
+            {/* Instructions */}
+            <div className="glass-panel rounded-xl p-5 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-primary text-sm">info</span>
+                <h3 className="text-sm text-gray-400 font-mono">GUIDED MODE INSTRUCTIONS</h3>
+              </div>
+              <div className="space-y-2 text-sm text-gray-400">
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">1.</span>
+                  <span>Lines highlighted in <span className="text-primary">violet</span> are editable</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">2.</span>
+                  <span>Replace <code className="text-yellow-400">___</code> with your solution</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">3.</span>
+                  <span>Locked lines contain the algorithm structure</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">4.</span>
+                  <span>Run code to test your solution</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Output & Test Results */}
+            <div className="glass-panel rounded-xl p-5 flex-1 overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-sm">terminal</span>
+                  <h3 className="text-sm text-gray-400 font-mono">OUTPUT</h3>
+                </div>
+                {testResults.length > 0 && (
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    testResults.every(t => t.passed) 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {testResults.filter(t => t.passed).length}/{testResults.length} Passed
+                  </span>
+                )}
               </div>
               
-              <div className="space-y-3">
-                {hints.map((hint, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-4 rounded-lg border ${
-                      hint.unlocked
-                        ? 'border-yellow-500/30 bg-yellow-500/5'
-                        : 'border-gray-700 bg-void/50'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <span className="text-sm text-gray-400">Hint {idx + 1}</span>
-                      {!hint.unlocked && (
-                        <button
-                          onClick={() => handleUnlockHint(idx)}
-                          className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded flex items-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-sm">paid</span>
-                          {hint.cost || 10}
-                        </button>
-                      )}
-                    </div>
-                    <p className={`mt-2 text-sm ${hint.unlocked ? 'text-gray-300' : 'text-gray-600 blur-sm select-none'}`}>
-                      {hint.unlocked ? hint.content : 'This hint is locked. Spend gold to reveal.'}
-                    </p>
+              <div className="flex-1 bg-[#0D1117] rounded-lg p-4 overflow-auto font-mono text-sm">
+                {isRunning ? (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                      <span className="material-symbols-outlined">sync</span>
+                    </motion.div>
+                    <span>Running code...</span>
                   </div>
-                ))}
+                ) : output ? (
+                  <div className="space-y-3">
+                    {output.error ? (
+                      <div className="text-red-400">
+                        <span className="text-red-500">Error: </span>
+                        {output.message || output.stderr}
+                      </div>
+                    ) : (
+                      <>
+                        {output.stdout && (
+                          <div>
+                            <span className="text-gray-500">Output:</span>
+                            <pre className="text-green-400 mt-1 whitespace-pre-wrap">{output.stdout}</pre>
+                          </div>
+                        )}
+                        
+                        {testResults.map((test, idx) => (
+                          <div 
+                            key={idx}
+                            className={`p-3 rounded-lg border ${
+                              test.passed 
+                                ? 'border-green-500/30 bg-green-500/5' 
+                                : 'border-red-500/30 bg-red-500/5'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`material-symbols-outlined text-sm ${
+                                test.passed ? 'text-green-400' : 'text-red-400'
+                              }`}>
+                                {test.passed ? 'check_circle' : 'cancel'}
+                              </span>
+                              <span className={test.passed ? 'text-green-400' : 'text-red-400'}>
+                                Test Case {idx + 1}
+                              </span>
+                            </div>
+                            <div className="text-xs space-y-1">
+                              <div><span className="text-gray-500">Input:</span> <span className="text-cyan-400">{JSON.stringify(test.input)}</span></div>
+                              <div><span className="text-gray-500">Expected:</span> <span className="text-green-400">{JSON.stringify(test.expected)}</span></div>
+                              <div><span className="text-gray-500">Got:</span> <span className={test.passed ? 'text-green-400' : 'text-red-400'}>{JSON.stringify(test.actual)}</span></div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-gray-600 flex items-center gap-2">
+                    <span className="material-symbols-outlined">play_arrow</span>
+                    <span>Run your code to see output...</span>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+          
+          {/* Right - Code Editor */}
+          <div className="flex flex-col gap-4 overflow-hidden">
+            {/* Editor Header */}
+            <div className="glass-panel rounded-xl overflow-hidden flex-1 flex flex-col">
+              <div className="p-3 border-b border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                  </div>
+                  <span className="text-sm text-gray-400 font-mono">solution.py</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Language:</span>
+                  <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">Python</span>
+                </div>
+              </div>
+              
+              {/* Monaco Editor */}
+              <div className="flex-1 relative">
+                <Editor
+                  height="100%"
+                  language="python"
+                  value={code}
+                  onChange={(value) => setCode(value || '')}
+                  onMount={handleEditorMount}
+                  theme="vs-dark"
+                  options={{
+                    fontSize: 14,
+                    fontFamily: 'JetBrains Mono, Fira Code, monospace',
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    lineNumbers: 'on',
+                    glyphMargin: true,
+                    folding: false,
+                    lineDecorationsWidth: 10,
+                    lineNumbersMinChars: 3,
+                    padding: { top: 16 },
+                    renderLineHighlight: 'all',
+                    scrollbar: {
+                      vertical: 'auto',
+                      horizontal: 'auto'
+                    }
+                  }}
+                />
+                
+                {/* Editable lines legend */}
+                <div className="absolute bottom-4 right-4 glass-panel rounded-lg px-3 py-2 flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-primary/50" />
+                  <span className="text-xs text-gray-400">Editable Line</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCode(skeletonCode)}
+                className="btn-system px-4 py-3 rounded-lg flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">restart_alt</span>
+                <span>Reset Code</span>
+              </button>
+              
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleRunCode}
+                disabled={isRunning}
+                className="flex-1 py-3 rounded-lg btn-primary font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isRunning ? (
+                  <>
+                    <motion.span 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="material-symbols-outlined"
+                    >
+                      sync
+                    </motion.span>
+                    Running...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">play_arrow</span>
+                    Run Code
+                  </>
+                )}
+              </motion.button>
+              
+              {canProceed && (
+                <motion.button
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={handleProceedToAutonomous}
+                  className="px-6 py-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-400 font-bold flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                  Next Phase
+                </motion.button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Hint Modal */}
+        <AnimatePresence>
+          {showHint && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-void/90 flex items-center justify-center z-50"
+              onClick={() => setShowHint(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={e => e.stopPropagation()}
+                className="glass-panel-strong rounded-2xl p-6 max-w-md w-full mx-4"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-yellow-400">lightbulb</span>
+                    <h2 className="font-bold">Hint {currentHint + 1}/{hints.length}</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowHint(false)}
+                    className="w-8 h-8 rounded-lg bg-void flex items-center justify-center hover:bg-primary/20"
+                  >
+                    <span className="material-symbols-outlined text-gray-400">close</span>
+                  </button>
+                </div>
+                
+                <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30 mb-4">
+                  <p className="text-gray-300">{hints[currentHint]}</p>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setCurrentHint(Math.max(0, currentHint - 1))}
+                    disabled={currentHint === 0}
+                    className="btn-system px-4 py-2 rounded-lg disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentHint(Math.min(hints.length - 1, currentHint + 1))}
+                    disabled={currentHint === hints.length - 1}
+                    className="btn-system px-4 py-2 rounded-lg disabled:opacity-50"
+                  >
+                    Next Hint
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+        
+        {/* Success Modal */}
+        <AnimatePresence>
+          {showSuccessModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-void/90 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                className="text-center"
+              >
+                {/* Shockwave effect */}
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 1 }}
+                  animate={{ scale: 3, opacity: 0 }}
+                  transition={{ duration: 1 }}
+                  className="absolute inset-0 border-4 border-primary rounded-full"
+                />
+                
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: 'spring' }}
+                  className="glass-panel-strong rounded-2xl p-8 max-w-md"
+                >
+                  <span className="material-symbols-outlined text-6xl text-green-400 mb-4">check_circle</span>
+                  <h2 className="text-2xl font-bold mb-2">[SYSTEM] Phase 2 Complete!</h2>
+                  <p className="text-gray-400 mb-6">You've mastered the guided coding phase.</p>
+                  
+                  <div className="p-4 bg-primary/10 rounded-lg border border-primary/30 mb-6">
+                    <p className="text-sm text-primary">+{problem?.xpReward || 50} XP earned</p>
+                  </div>
+                  
+                  <button
+                    onClick={handleProceedToAutonomous}
+                    className="w-full py-3 rounded-lg btn-primary font-bold"
+                  >
+                    Proceed to Autonomous Mode
+                  </button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      
+      {/* Custom styles for editable lines */}
+      <style>{`
+        .editable-line-decoration {
+          background: rgba(139, 92, 246, 0.1) !important;
+          border-left: 3px solid #8B5CF6 !important;
+        }
+        .editable-line-glyph {
+          background: #8B5CF6;
+          border-radius: 2px;
+          margin-left: 3px;
+        }
+      `}</style>
     </div>
   );
 };

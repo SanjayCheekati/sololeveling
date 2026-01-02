@@ -358,4 +358,121 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/progress/defeat-boss
+// @desc    Record boss defeat
+// @access  Private
+router.post('/defeat-boss', auth, async (req, res) => {
+  try {
+    const { zone, bossId, timeToDefeat, hintsUsed } = req.body;
+    const user = await User.findById(req.user._id);
+    let progress = await Progress.findOne({ user: req.user._id });
+
+    if (!progress) {
+      progress = new Progress({ user: req.user._id });
+    }
+
+    // Check if boss already defeated
+    const alreadyDefeated = progress.bossesDefeated?.some(b => b.zone === zone);
+    
+    if (alreadyDefeated) {
+      return res.json({
+        success: true,
+        message: '[SYSTEM] Boss already defeated. No additional rewards.',
+        data: { alreadyDefeated: true }
+      });
+    }
+
+    // Initialize if needed
+    if (!progress.bossesDefeated) {
+      progress.bossesDefeated = [];
+    }
+
+    // Record boss defeat
+    progress.bossesDefeated.push({
+      zone,
+      defeatedAt: new Date(),
+      timeToDefeat: timeToDefeat || 0,
+      hintsUsed: hintsUsed || 0
+    });
+
+    // Mark zone as complete
+    if (!progress.zoneProgress[zone]) {
+      progress.zoneProgress[zone] = {};
+    }
+    progress.zoneProgress[zone].bossDefeated = true;
+    progress.zoneProgress[zone].completedAt = new Date();
+
+    await progress.save();
+
+    // Boss rewards
+    const bossRewards = {
+      'arrays': { xp: 500, gold: 200, statsBoost: { str: 3, int: 3, agi: 3, end: 3, sen: 3 } },
+      'stacks': { xp: 750, gold: 350, statsBoost: { str: 4, int: 4, agi: 4, end: 4, sen: 4 } },
+      'recursion': { xp: 1000, gold: 500, statsBoost: { str: 5, int: 5, agi: 5, end: 5, sen: 5 } },
+      'binary-trees': { xp: 1250, gold: 650, statsBoost: { str: 6, int: 6, agi: 6, end: 6, sen: 6 } },
+      'graphs': { xp: 1500, gold: 800, statsBoost: { str: 8, int: 8, agi: 8, end: 8, sen: 8 } },
+      'dp': { xp: 2000, gold: 1000, statsBoost: { str: 10, int: 10, agi: 10, end: 10, sen: 10 } }
+    };
+
+    const reward = bossRewards[zone] || bossRewards['arrays'];
+
+    // Apply rewards
+    user.currentXP += reward.xp;
+    user.totalXP += reward.xp;
+    user.gold += reward.gold;
+    user.stats.strength += reward.statsBoost.str;
+    user.stats.intelligence += reward.statsBoost.int;
+    user.stats.agility += reward.statsBoost.agi;
+    user.stats.endurance += reward.statsBoost.end;
+    user.stats.sense += reward.statsBoost.sen;
+
+    // Check for level up
+    let xpNeeded = user.getXPForNextLevel();
+    let leveledUp = false;
+    while (user.currentXP >= xpNeeded) {
+      user.currentXP -= xpNeeded;
+      user.level += 1;
+      leveledUp = true;
+      xpNeeded = user.getXPForNextLevel();
+    }
+
+    await user.save();
+
+    // Determine next zone to unlock
+    const zoneOrder = ['arrays', 'stacks', 'recursion', 'binary-trees', 'graphs', 'dp'];
+    const currentIndex = zoneOrder.indexOf(zone);
+    const nextZone = currentIndex < zoneOrder.length - 1 ? zoneOrder[currentIndex + 1] : null;
+
+    res.json({
+      success: true,
+      message: `[SYSTEM] BOSS DEFEATED! ${zone.toUpperCase()} zone cleared!`,
+      data: {
+        zone,
+        rewards: {
+          xp: reward.xp,
+          gold: reward.gold,
+          statsBoost: reward.statsBoost
+        },
+        leveledUp,
+        newLevel: user.level,
+        nextZone,
+        canUnlockNext: nextZone && !user.zonesUnlocked.includes(nextZone),
+        user: {
+          level: user.level,
+          currentXP: user.currentXP,
+          xpForNextLevel: user.getXPForNextLevel(),
+          gold: user.gold,
+          stats: user.stats
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[SYSTEM ERROR]', error);
+    res.status(500).json({
+      success: false,
+      message: '[SYSTEM] Failed to record boss defeat.'
+    });
+  }
+});
+
 module.exports = router;

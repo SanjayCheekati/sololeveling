@@ -108,10 +108,34 @@ export const useAuthStore = create(
       addXP: async (amount) => {
         try {
           const response = await api.post('/users/xp', { amount });
-          set({ user: response.data.user });
-          return response.data;
+          const userData = response.data?.data || response.data?.user || response.data;
+          set({ user: userData });
+          return userData;
         } catch (error) {
+          // Optimistically update locally if API fails
+          set((state) => ({
+            user: {
+              ...state.user,
+              currentXP: (state.user?.currentXP || 0) + amount
+            }
+          }));
           console.error('Failed to add XP:', error);
+          return null;
+        }
+      },
+      
+      refreshUser: async () => {
+        const token = get().token;
+        if (!token) return;
+        
+        try {
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          const response = await api.get('/users/profile');
+          const userData = response.data?.data?.user || response.data?.user || response.data;
+          set({ user: userData });
+          return userData;
+        } catch (error) {
+          console.error('Failed to refresh user:', error);
           return null;
         }
       },
