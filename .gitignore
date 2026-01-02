@@ -45,3 +45,9 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Project docs (not needed in repo)
+development_prompt
+story.txt
+ui/
+.dist/
