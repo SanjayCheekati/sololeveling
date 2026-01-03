@@ -73,7 +73,6 @@ function App() {
       <div className="fixed inset-0 grid-bg opacity-30 pointer-events-none z-0" />
       <div className="fixed inset-0 hex-bg opacity-50 pointer-events-none z-0" />
       <div className="fixed inset-0 scanlines pointer-events-none z-[60]" />
-      <div className="fixed inset-0 vignette pointer-events-none z-[55]" />
       
       {/* Ambient Violet Glow */}
       <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] animate-pulse-slow pointer-events-none z-0" />

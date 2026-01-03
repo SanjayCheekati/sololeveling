@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { problemAPI, progressAPI } from '../services/api';
 import { toast } from 'react-toastify';
@@ -12,16 +11,15 @@ const VisualLearning = () => {
   
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [animationStep, setAnimationStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showPrediction, setShowPrediction] = useState(false);
   const [userPrediction, setUserPrediction] = useState('');
   const [predictionResult, setPredictionResult] = useState(null);
   const [predictionsMade, setPredictionsMade] = useState([]);
   const [visualizationData, setVisualizationData] = useState(null);
   const [canProceed, setCanProceed] = useState(false);
-  const animationRef = useRef(null);
+  const [selectedPredictionOption, setSelectedPredictionOption] = useState(null);
+  const contentRef = useRef(null);
   
   useEffect(() => {
     const loadProblem = async () => {
@@ -41,338 +39,134 @@ const VisualLearning = () => {
   }, [problemId, navigate]);
   
   const initializeVisualization = (prob) => {
-    // Generate visualization steps based on problem type
-    const testCase = prob.testCases?.[0] || { input: [1, 2, 3, 4, 5], expected: [5, 4, 3, 2, 1] };
-    const category = prob.category?.toLowerCase() || 'arrays';
+    // Get tutorial content from problem or generate default
+    const tutorialContent = prob.tutorialContent || generateDefaultTutorial(prob);
     
-    let steps = [];
-    
-    if (category === 'arrays') {
-      // Array visualization with pointer movements
-      const arr = parseInput(testCase.input);
-      steps = generateArraySteps(arr, prob.title);
-    } else if (category === 'stacks') {
-      steps = generateStackSteps(testCase);
-    } else if (category === 'recursion') {
-      steps = generateRecursionSteps(testCase);
-    } else if (category === 'binary-trees') {
-      steps = generateTreeSteps(testCase);
-    } else {
-      steps = generateGenericSteps(testCase);
-    }
-    
-    // Add prediction checkpoints at key steps
-    const checkpoints = [
-      Math.floor(steps.length * 0.3),
-      Math.floor(steps.length * 0.6),
-      Math.floor(steps.length * 0.9)
-    ];
-    
-    steps = steps.map((step, idx) => ({
-      ...step,
-      hasPrediction: checkpoints.includes(idx),
+    // Create learning steps from tutorial content
+    const steps = tutorialContent.sections.map((section, idx) => ({
+      ...section,
       stepNumber: idx + 1,
-      totalSteps: steps.length
+      totalSteps: tutorialContent.sections.length,
+      hasPrediction: section.hasPrediction || false
     }));
     
-    setVisualizationData({ steps, checkpoints });
-  };
-  
-  const parseInput = (input) => {
-    if (Array.isArray(input)) return input;
-    if (typeof input === 'string') {
-      try { return JSON.parse(input); } catch { return input.split(',').map(x => x.trim()); }
-    }
-    return [input];
-  };
-  
-  const generateArraySteps = (arr, title) => {
-    const steps = [];
-    const workingArr = [...arr];
+    // Add prediction checkpoints at specific steps if not already defined
+    const checkpoints = steps.filter(s => s.hasPrediction).map((s, i) => i);
     
-    // Initial state
-    steps.push({
-      type: 'init',
-      description: 'Initialize array',
-      array: [...workingArr],
-      highlights: [],
-      pointers: {},
-      explanation: 'This is our starting array. We need to solve the problem by manipulating these elements.',
-      code: 'arr = [' + workingArr.join(', ') + ']'
+    setVisualizationData({ 
+      steps, 
+      checkpoints: checkpoints.length > 0 ? checkpoints : [Math.floor(steps.length * 0.7)],
+      predictions: prob.predictions || tutorialContent.predictions || []
     });
+  };
+  
+  const generateDefaultTutorial = (prob) => {
+    const category = prob.category?.toLowerCase() || prob.zone || 'python-basics';
     
-    if (title.toLowerCase().includes('reverse')) {
-      // Reverse array visualization
-      let left = 0, right = workingArr.length - 1;
-      
-      steps.push({
-        type: 'setup',
-        description: 'Set up two pointers',
-        array: [...workingArr],
-        highlights: [0, workingArr.length - 1],
-        pointers: { left: 0, right: workingArr.length - 1 },
-        explanation: 'We use two pointers: one at the start (left) and one at the end (right).',
-        code: 'left, right = 0, len(arr) - 1'
-      });
-      
-      while (left < right) {
-        steps.push({
-          type: 'compare',
-          description: `Compare elements at positions ${left} and ${right}`,
-          array: [...workingArr],
-          highlights: [left, right],
-          pointers: { left, right },
-          explanation: `Checking elements: arr[${left}] = ${workingArr[left]}, arr[${right}] = ${workingArr[right]}`,
-          code: `# arr[${left}] = ${workingArr[left]}, arr[${right}] = ${workingArr[right]}`
-        });
-        
-        // Swap
-        [workingArr[left], workingArr[right]] = [workingArr[right], workingArr[left]];
-        
-        steps.push({
-          type: 'swap',
-          description: `Swap elements`,
-          array: [...workingArr],
-          highlights: [left, right],
-          pointers: { left, right },
-          explanation: `Swapped! Now arr[${left}] = ${workingArr[left]}, arr[${right}] = ${workingArr[right]}`,
-          code: `arr[${left}], arr[${right}] = arr[${right}], arr[${left}]`
-        });
-        
-        left++;
-        right--;
-        
-        if (left < right) {
-          steps.push({
-            type: 'move',
-            description: 'Move pointers inward',
-            array: [...workingArr],
-            highlights: [left, right],
-            pointers: { left, right },
-            explanation: 'Move left pointer forward, right pointer backward.',
-            code: 'left += 1; right -= 1'
-          });
+    // Default Python basics tutorial content
+    return {
+      sections: [
+        {
+          title: 'What is this problem about?',
+          content: prob.description || 'Let\'s learn something new!',
+          type: 'intro'
+        },
+        {
+          title: 'Understanding the Concept',
+          content: `In this lesson, we'll learn step by step. Don't worry if it seems hard at first - everyone starts somewhere! 🌟`,
+          type: 'explanation'
+        },
+        {
+          title: 'Example',
+          content: prob.examples?.[0]?.explanation || 'Let\'s see how this works with an example.',
+          code: prob.examples?.[0]?.input ? `Input: ${prob.examples[0].input}\nOutput: ${prob.examples[0].output}` : '',
+          type: 'example'
+        },
+        {
+          title: 'Your Turn!',
+          content: 'Now let\'s check if you understood the concept.',
+          type: 'checkpoint',
+          hasPrediction: true
         }
-      }
-    } else {
-      // Generic array traversal
-      for (let i = 0; i < Math.min(workingArr.length, 5); i++) {
-        steps.push({
-          type: 'traverse',
-          description: `Visit index ${i}`,
-          array: [...workingArr],
-          highlights: [i],
-          pointers: { i },
-          explanation: `Processing element at index ${i}: value = ${workingArr[i]}`,
-          code: `for i in range(len(arr)):  # i = ${i}`
-        });
-      }
-    }
-    
-    steps.push({
-      type: 'complete',
-      description: 'Algorithm complete',
-      array: [...workingArr],
-      highlights: [],
-      pointers: {},
-      explanation: 'The algorithm has finished. Final result is ready.',
-      code: 'return arr'
-    });
-    
-    return steps;
-  };
-  
-  const generateStackSteps = (testCase) => {
-    const steps = [];
-    const stack = [];
-    const input = parseInput(testCase.input);
-    
-    steps.push({
-      type: 'init',
-      description: 'Initialize empty stack',
-      stack: [],
-      highlights: [],
-      explanation: 'We start with an empty stack (LIFO - Last In First Out).',
-      code: 'stack = []'
-    });
-    
-    input.slice(0, 6).forEach((item, idx) => {
-      stack.push(item);
-      steps.push({
-        type: 'push',
-        description: `Push ${item} onto stack`,
-        stack: [...stack],
-        highlights: [stack.length - 1],
-        explanation: `Adding ${item} to the top of the stack.`,
-        code: `stack.append(${typeof item === 'string' ? `'${item}'` : item})`
-      });
-    });
-    
-    if (stack.length > 0) {
-      const popped = stack.pop();
-      steps.push({
-        type: 'pop',
-        description: `Pop ${popped} from stack`,
-        stack: [...stack],
-        highlights: [],
-        explanation: `Removing ${popped} from the top of the stack (LIFO).`,
-        code: `top = stack.pop()  # ${popped}`
-      });
-    }
-    
-    return steps;
-  };
-  
-  const generateRecursionSteps = (testCase) => {
-    const steps = [];
-    const n = parseInt(parseInput(testCase.input)[0]) || 5;
-    
-    const generateRecursiveCalls = (depth, value) => {
-      if (depth > 4 || value <= 1) return;
-      
-      steps.push({
-        type: 'call',
-        description: `Recursive call: f(${value})`,
-        callStack: steps.filter(s => s.type === 'call').map(s => s.value).concat(value),
-        depth,
-        value,
-        explanation: `Entering recursive call with n = ${value}. Depth: ${depth}`,
-        code: `def f(${value}):  # call depth ${depth}`
-      });
-      
-      if (value <= 1) {
-        steps.push({
-          type: 'base',
-          description: 'Base case reached',
-          callStack: steps.filter(s => s.type === 'call').map(s => s.value),
-          depth,
-          value,
-          explanation: 'Base case! Stop recursion and return.',
-          code: `if n <= 1: return ${value}`
-        });
-      } else {
-        generateRecursiveCalls(depth + 1, value - 1);
-        
-        steps.push({
-          type: 'return',
-          description: `Return from f(${value})`,
-          callStack: steps.filter(s => s.type === 'call').slice(0, -1).map(s => s.value),
-          depth,
-          value,
-          explanation: `Returning from f(${value}). Unwinding call stack.`,
-          code: `return result  # from f(${value})`
-        });
-      }
+      ],
+      predictions: prob.predictions || []
     };
-    
-    generateRecursiveCalls(1, Math.min(n, 5));
-    
-    return steps;
   };
   
-  const generateTreeSteps = (testCase) => {
-    const steps = [];
-    // Simplified tree traversal visualization
-    const treeValues = [1, 2, 3, 4, 5, 6, 7];
-    
-    steps.push({
-      type: 'init',
-      description: 'Initialize binary tree',
-      tree: treeValues,
-      currentNode: null,
-      visited: [],
-      explanation: 'A binary tree where each node has at most 2 children.',
-      code: '# Tree structure initialized'
-    });
-    
-    // Simulate inorder traversal
-    const visited = [];
-    const traverse = (idx, path) => {
-      if (idx >= treeValues.length) return;
+  // Navigation controls
+  const goToStep = (stepIndex) => {
+    if (stepIndex >= 0 && stepIndex < (visualizationData?.steps?.length || 0)) {
+      setCurrentStep(stepIndex);
       
-      steps.push({
-        type: 'visit',
-        description: `Visit node ${treeValues[idx]}`,
-        tree: treeValues,
-        currentNode: idx,
-        visited: [...visited],
-        explanation: `Currently at node with value ${treeValues[idx]}.`,
-        code: `# Visiting node: ${treeValues[idx]}`
-      });
-      
-      visited.push(idx);
-    };
-    
-    [0, 1, 3, 4, 2, 5, 6].slice(0, 5).forEach(idx => traverse(idx, []));
-    
-    return steps;
-  };
-  
-  const generateGenericSteps = (testCase) => {
-    return [{
-      type: 'init',
-      description: 'Starting algorithm',
-      explanation: 'Beginning the algorithm visualization.',
-      code: '# Algorithm starts'
-    }];
-  };
-  
-  // Playback controls
-  useEffect(() => {
-    if (isPlaying && visualizationData) {
-      const step = visualizationData.steps[animationStep];
-      
-      if (step?.hasPrediction && !predictionsMade.includes(animationStep)) {
-        setIsPlaying(false);
+      // Check if this step has a prediction
+      const step = visualizationData.steps[stepIndex];
+      if (step?.hasPrediction && !predictionsMade.find(p => p.step === stepIndex)) {
         setShowPrediction(true);
-        return;
       }
-      
-      animationRef.current = setTimeout(() => {
-        if (animationStep < visualizationData.steps.length - 1) {
-          setAnimationStep(prev => prev + 1);
-        } else {
-          setIsPlaying(false);
-          checkCompletion();
-        }
-      }, 1500 / playbackSpeed);
     }
-    
-    return () => clearTimeout(animationRef.current);
-  }, [isPlaying, animationStep, playbackSpeed, visualizationData, predictionsMade]);
+  };
+  
+  const nextStep = () => {
+    const nextIdx = currentStep + 1;
+    if (nextIdx < (visualizationData?.steps?.length || 0)) {
+      goToStep(nextIdx);
+    } else {
+      checkCompletion();
+    }
+  };
+  
+  const prevStep = () => {
+    goToStep(currentStep - 1);
+  };
   
   const checkCompletion = () => {
-    const requiredPredictions = visualizationData?.checkpoints?.length || 3;
-    const correctPredictions = predictionsMade.filter(p => p.correct).length;
+    // Allow proceeding after viewing all steps OR making at least one prediction
+    const viewedAllSteps = currentStep >= (visualizationData?.steps?.length || 1) - 1;
+    const madePredictions = predictionsMade.length > 0;
     
-    if (predictionsMade.length >= requiredPredictions && correctPredictions >= Math.ceil(requiredPredictions / 2)) {
+    if (viewedAllSteps || madePredictions) {
       setCanProceed(true);
-      toast.success('Phase 1 Complete! Guided coding unlocked.');
+      toast.success('🎉 Great job! You can now proceed to coding!');
     }
   };
   
-  const handlePrediction = () => {
-    const currentStep = visualizationData.steps[animationStep];
-    // Simple prediction validation (in real app, this would be more sophisticated)
-    const isCorrect = userPrediction.toLowerCase().includes('swap') || 
-                      userPrediction.toLowerCase().includes('move') ||
-                      userPrediction.length > 10;
+  const handlePrediction = (selectedOption) => {
+    const prediction = visualizationData?.predictions?.[0] || problem?.predictions?.[0];
+    
+    if (!prediction) {
+      // No prediction defined, just mark as done
+      setPredictionsMade(prev => [...prev, { step: currentStep, correct: true, skipped: false }]);
+      setShowPrediction(false);
+      setCanProceed(true);
+      return;
+    }
+    
+    const isCorrect = selectedOption === prediction.correctAnswer;
     
     setPredictionResult({
       correct: isCorrect,
       message: isCorrect 
-        ? 'Correct! Your understanding is growing.' 
-        : 'Not quite. Watch the visualization carefully.'
+        ? '✅ Correct! You\'re understanding this well!' 
+        : `❌ Not quite. The correct answer is: ${prediction.correctAnswer}`,
+      explanation: prediction.explanation
     });
     
-    setPredictionsMade(prev => [...prev, { step: animationStep, correct: isCorrect }]);
+    setPredictionsMade(prev => [...prev, { step: currentStep, correct: isCorrect, skipped: false }]);
     
     setTimeout(() => {
       setShowPrediction(false);
       setPredictionResult(null);
       setUserPrediction('');
-      setIsPlaying(true);
-    }, 2000);
+      setSelectedPredictionOption(null);
+      setCanProceed(true);
+    }, 2500);
+  };
+  
+  const handleSkipPrediction = () => {
+    setPredictionsMade(prev => [...prev, { step: currentStep, correct: false, skipped: true }]);
+    setShowPrediction(false);
+    setCanProceed(true);
+    toast.info('Prediction skipped. You can still proceed!');
   };
   
   const handleProceedToGuided = async () => {
@@ -389,7 +183,32 @@ const VisualLearning = () => {
     }
   };
   
-  const currentStep = visualizationData?.steps?.[animationStep];
+  const step = visualizationData?.steps?.[currentStep];
+  
+  // Format content with markdown-like rendering
+  const formatContent = (content) => {
+    if (!content) return null;
+    
+    // Split into paragraphs and format
+    return content.split('\n').map((line, i) => {
+      // Handle code blocks
+      if (line.startsWith('```')) return null;
+      if (line.trim().startsWith('#')) {
+        const level = line.match(/^#+/)[0].length;
+        const text = line.replace(/^#+\s*/, '');
+        if (level === 1) return <h2 key={i} className="text-xl font-bold text-primary mb-2">{text}</h2>;
+        if (level === 2) return <h3 key={i} className="text-lg font-bold text-cyan-400 mb-2">{text}</h3>;
+        return <h4 key={i} className="text-md font-bold text-gray-300 mb-1">{text}</h4>;
+      }
+      // Handle bullet points
+      if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+        return <li key={i} className="ml-4 text-gray-300">{line.replace(/^[-•]\s*/, '')}</li>;
+      }
+      // Handle bold text
+      const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>');
+      return line.trim() ? <p key={i} className="text-gray-300 mb-2" dangerouslySetInnerHTML={{ __html: formattedLine }} /> : null;
+    }).filter(Boolean);
+  };
   
   if (loading) {
     return (
@@ -397,17 +216,19 @@ const VisualLearning = () => {
         <div className="text-center">
           <div className="relative w-20 h-20 mx-auto">
             <div className="absolute inset-0 border-2 border-primary/30 rounded-full animate-spin" />
-            <span className="material-symbols-outlined text-3xl text-primary animate-pulse absolute inset-0 flex items-center justify-center">visibility</span>
+            <span className="material-symbols-outlined text-3xl text-primary absolute inset-0 flex items-center justify-center">visibility</span>
           </div>
-          <p className="text-gray-500 mt-6 font-mono text-sm">[SYSTEM] Loading visualization...</p>
+          <p className="text-gray-500 mt-6 font-mono text-sm">[SYSTEM] Loading lesson...</p>
         </div>
       </div>
     );
   }
   
+  const currentPrediction = visualizationData?.predictions?.[0] || problem?.predictions?.[0];
+  
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-[1600px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -420,10 +241,10 @@ const VisualLearning = () => {
             <div>
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-mono">
-                  PHASE 1 - VISUALIZATION
+                  📚 LEARNING MODE
                 </span>
                 <span className="text-gray-600">•</span>
-                <span className="text-sm text-gray-400">{problem?.category}</span>
+                <span className="text-sm text-gray-400">{problem?.zone || 'Python Basics'}</span>
               </div>
               <h1 className="text-2xl font-bold mt-1">{problem?.title}</h1>
             </div>
@@ -432,365 +253,342 @@ const VisualLearning = () => {
           {/* Progress indicator */}
           <div className="flex items-center gap-4">
             <div className="glass-panel px-4 py-2 rounded-lg flex items-center gap-3">
-              <span className="text-xs text-gray-500">Predictions:</span>
-              <span className="text-primary font-bold">{predictionsMade.filter(p => p.correct).length}/{visualizationData?.checkpoints?.length || 3}</span>
+              <span className="text-xs text-gray-500">Progress:</span>
+              <span className="text-primary font-bold">{currentStep + 1}/{visualizationData?.steps?.length || 1}</span>
             </div>
           </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Visualization Area */}
+          {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Visualization Canvas */}
-            <div className="glass-panel-strong rounded-2xl p-8 min-h-[400px] relative overflow-hidden">
-              {/* Background grid */}
-              <div className="absolute inset-0 opacity-5" style={{
-                backgroundImage: 'linear-gradient(to right, #8B5CF6 1px, transparent 1px), linear-gradient(to bottom, #8B5CF6 1px, transparent 1px)',
-                backgroundSize: '40px 40px'
-              }} />
-              
-              <div className="relative">
-                {/* Step description */}
-                <div className="text-center mb-8">
-                  <motion.div
-                    key={animationStep}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30"
-                  >
-                    <span className="text-xs text-gray-400">Step {animationStep + 1}/{visualizationData?.steps?.length || 0}</span>
-                    <span className="text-primary font-mono">{currentStep?.description}</span>
-                  </motion.div>
+            {/* Learning Content Card */}
+            <div className="glass-panel-strong rounded-2xl p-8 min-h-[400px]" ref={contentRef}>
+              {/* Step Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-primary font-bold">{currentStep + 1}</span>
                 </div>
-                
-                {/* Array Visualization */}
-                {currentStep?.array && (
-                  <div className="flex justify-center items-end gap-3 my-8">
-                    {currentStep.array.map((val, idx) => (
-                      <motion.div
-                        key={idx}
-                        layout
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ 
-                          scale: 1, 
-                          opacity: 1,
-                          y: currentStep.highlights?.includes(idx) ? -10 : 0
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className={`
-                          relative w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold
-                          transition-all duration-300
-                          ${currentStep.highlights?.includes(idx) 
-                            ? 'bg-primary/30 border-2 border-primary shadow-neon' 
-                            : 'bg-void/80 border border-gray-700'
-                          }
-                        `}
-                      >
-                        {val}
-                        {/* Index label */}
-                        <span className="absolute -bottom-6 text-xs text-gray-500">{idx}</span>
-                        {/* Pointer labels */}
-                        {Object.entries(currentStep.pointers || {}).map(([name, pos]) => (
-                          pos === idx && (
-                            <motion.span 
-                              key={name}
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-8 px-2 py-1 rounded bg-primary/20 text-primary text-xs font-mono"
-                            >
-                              {name}
-                            </motion.span>
-                          )
-                        ))}
-                      </motion.div>
-                    ))}
+                <h2 className="text-xl font-bold text-white">
+                  {step?.title || `Step ${currentStep + 1}`}
+                </h2>
+              </div>
+              
+              {/* Main Content */}
+              <div className="prose prose-invert max-w-none">
+                {step?.content && (
+                  <div className="text-gray-300 text-lg leading-relaxed mb-6">
+                    {formatContent(step.content)}
                   </div>
                 )}
                 
-                {/* Stack Visualization */}
-                {currentStep?.stack && (
-                  <div className="flex flex-col-reverse items-center gap-2 my-8">
-                    {currentStep.stack.map((val, idx) => (
-                      <motion.div
-                        key={idx}
-                        layout
-                        initial={{ scale: 0.8, x: -50, opacity: 0 }}
-                        animate={{ scale: 1, x: 0, opacity: 1 }}
-                        exit={{ scale: 0.8, x: 50, opacity: 0 }}
-                        className={`
-                          w-32 h-12 rounded-lg flex items-center justify-center font-bold
-                          ${currentStep.highlights?.includes(idx)
-                            ? 'bg-primary/30 border-2 border-primary'
-                            : 'bg-void/80 border border-gray-700'
-                          }
-                        `}
-                      >
-                        {val}
-                      </motion.div>
-                    ))}
-                    <div className="w-40 h-4 bg-gray-800 rounded mt-2">
-                      <span className="text-xs text-gray-500 block text-center mt-2">Stack Bottom</span>
+                {/* Explanation with kid-friendly styling */}
+                {step?.explanation && (
+                  <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 mb-6">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">💡</span>
+                      <div>
+                        <h4 className="text-primary font-bold mb-2">Easy Explanation:</h4>
+                        <p className="text-gray-300">{step.explanation}</p>
+                      </div>
                     </div>
                   </div>
                 )}
                 
-                {/* Recursion Call Stack Visualization */}
-                {currentStep?.callStack && (
-                  <div className="flex flex-col items-center gap-2 my-8">
-                    <p className="text-xs text-gray-500 mb-4">Call Stack</p>
-                    {currentStep.callStack.map((val, idx) => (
-                      <motion.div
+                {/* Code Example */}
+                {step?.code && (
+                  <div className="bg-[#0D1117] rounded-xl p-6 mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="material-symbols-outlined text-cyan-400 text-sm">code</span>
+                      <span className="text-xs text-cyan-400 font-mono">Python Example</span>
+                    </div>
+                    <pre className="font-mono text-sm text-green-400 whitespace-pre-wrap overflow-x-auto">
+                      {step.code}
+                    </pre>
+                  </div>
+                )}
+                
+                {/* Visual Array Display (if exists) */}
+                {step?.array && (
+                  <div className="flex justify-center items-end gap-3 my-8">
+                    {step.array.map((val, idx) => (
+                      <div
                         key={idx}
-                        layout
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
                         className={`
-                          px-6 py-3 rounded-lg font-mono
-                          ${idx === currentStep.callStack.length - 1
-                            ? 'bg-primary/30 border-2 border-primary'
+                          relative w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold
+                          ${step.highlights?.includes(idx) 
+                            ? 'bg-primary/30 border-2 border-primary shadow-lg shadow-primary/30' 
                             : 'bg-void/80 border border-gray-700'
                           }
                         `}
                       >
-                        f({val})
-                      </motion.div>
+                        {val}
+                        <span className="absolute -bottom-6 text-xs text-gray-500">[{idx}]</span>
+                      </div>
                     ))}
                   </div>
                 )}
                 
-                {/* Explanation text */}
-                <motion.div
-                  key={`exp-${animationStep}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center mt-8 p-4 rounded-lg bg-void/50 border border-gray-800"
-                >
-                  <p className="text-gray-300">{currentStep?.explanation}</p>
-                </motion.div>
+                {/* Try It Yourself Box */}
+                {step?.tryIt && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">🎯</span>
+                      <div>
+                        <h4 className="text-green-400 font-bold mb-2">Try It Yourself:</h4>
+                        <p className="text-gray-300">{step.tryIt}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
-            {/* Playback Controls */}
+            {/* Navigation Controls - Static Buttons */}
             <div className="glass-panel rounded-xl p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setAnimationStep(0)}
-                    className="w-10 h-10 rounded-lg bg-void flex items-center justify-center hover:bg-primary/20 transition-colors"
-                    disabled={isPlaying}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">skip_previous</span>
-                  </button>
-                  <button
-                    onClick={() => setAnimationStep(Math.max(0, animationStep - 1))}
-                    className="w-10 h-10 rounded-lg bg-void flex items-center justify-center hover:bg-primary/20 transition-colors"
-                    disabled={isPlaying || animationStep === 0}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">fast_rewind</span>
-                  </button>
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center hover:bg-primary/30 transition-colors border border-primary/50"
-                  >
-                    <span className="material-symbols-outlined text-primary text-3xl">
-                      {isPlaying ? 'pause' : 'play_arrow'}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setAnimationStep(Math.min((visualizationData?.steps?.length || 1) - 1, animationStep + 1))}
-                    className="w-10 h-10 rounded-lg bg-void flex items-center justify-center hover:bg-primary/20 transition-colors"
-                    disabled={isPlaying || animationStep === (visualizationData?.steps?.length || 1) - 1}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">fast_forward</span>
-                  </button>
-                  <button
-                    onClick={() => setAnimationStep((visualizationData?.steps?.length || 1) - 1)}
-                    className="w-10 h-10 rounded-lg bg-void flex items-center justify-center hover:bg-primary/20 transition-colors"
-                    disabled={isPlaying}
-                  >
-                    <span className="material-symbols-outlined text-gray-400">skip_next</span>
-                  </button>
-                </div>
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-void hover:bg-primary/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <span className="material-symbols-outlined text-gray-400">arrow_back</span>
+                  <span className="text-gray-400">Previous</span>
+                </button>
                 
-                {/* Progress bar */}
-                <div className="flex-1 mx-6">
-                  <div className="h-2 bg-void rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-primary to-cyan-500"
-                      style={{ width: `${((animationStep + 1) / (visualizationData?.steps?.length || 1)) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                
-                {/* Speed control */}
+                {/* Step dots */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Speed:</span>
-                  {[0.5, 1, 1.5, 2].map(speed => (
+                  {visualizationData?.steps?.map((_, idx) => (
                     <button
-                      key={speed}
-                      onClick={() => setPlaybackSpeed(speed)}
-                      className={`px-2 py-1 rounded text-xs transition-colors ${
-                        playbackSpeed === speed 
-                          ? 'bg-primary/30 text-primary' 
-                          : 'bg-void text-gray-400 hover:bg-primary/10'
+                      key={idx}
+                      onClick={() => goToStep(idx)}
+                      className={`w-3 h-3 rounded-full transition-all ${
+                        idx === currentStep 
+                          ? 'bg-primary scale-125' 
+                          : idx < currentStep 
+                            ? 'bg-primary/50' 
+                            : 'bg-gray-600'
                       }`}
-                    >
-                      {speed}x
-                    </button>
+                    />
                   ))}
+                </div>
+                
+                <button
+                  onClick={nextStep}
+                  disabled={currentStep >= (visualizationData?.steps?.length || 1) - 1}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/20 hover:bg-primary/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-primary/50"
+                >
+                  <span className="text-primary">Next</span>
+                  <span className="material-symbols-outlined text-primary">arrow_forward</span>
+                </button>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="mt-4">
+                <div className="h-2 bg-void rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-cyan-500 transition-all duration-300"
+                    style={{ width: `${((currentStep + 1) / (visualizationData?.steps?.length || 1)) * 100}%` }}
+                  />
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Right Panel - Code Display (Locked) & Info */}
+          {/* Right Panel - Quick Reference & Tips */}
           <div className="space-y-6">
-            {/* Locked Code Panel */}
-            <div className="glass-panel rounded-2xl overflow-hidden relative">
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-gray-500">code</span>
-                  <span className="text-sm text-gray-400">Python Code</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30">
-                  <span className="material-symbols-outlined text-red-400 text-sm">lock</span>
-                  <span className="text-xs text-red-400 font-mono">LOCKED BY SYSTEM</span>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-[#0D1117] relative">
-                {/* Blur overlay */}
-                <div className="absolute inset-0 backdrop-blur-md bg-void/50 flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <span className="material-symbols-outlined text-5xl text-primary/50 mb-3">lock</span>
-                    <p className="text-sm text-gray-500 font-mono">[SYSTEM]</p>
-                    <p className="text-xs text-gray-600">CODE ACCESS LOCKED</p>
-                    <p className="text-xs text-gray-600 mt-2">Complete visualization to unlock</p>
-                  </div>
-                </div>
-                
-                {/* Blurred code preview */}
-                <pre className="font-mono text-xs text-gray-400 filter blur-sm select-none">
-{`def solve(arr):
-    # Solution code
-    left, right = 0, len(arr) - 1
-    while left < right:
-        arr[left], arr[right] = arr[right], arr[left]
-        left += 1
-        right -= 1
-    return arr`}
-                </pre>
+            {/* Quick Reference Card */}
+            <div className="glass-panel rounded-2xl p-4">
+              <h3 className="text-xs text-gray-500 font-mono mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-sm">menu_book</span>
+                QUICK REFERENCE
+              </h3>
+              <div className="space-y-3 text-sm">
+                <a 
+                  href="https://www.w3schools.com/python/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-void/50 hover:bg-primary/10 transition-colors"
+                >
+                  <span className="text-green-400">🌐</span>
+                  <span className="text-gray-300">W3Schools Python</span>
+                  <span className="material-symbols-outlined text-gray-500 text-sm ml-auto">open_in_new</span>
+                </a>
+                <a 
+                  href="https://www.codewithharry.com/tutorial/python/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-void/50 hover:bg-primary/10 transition-colors"
+                >
+                  <span className="text-orange-400">📚</span>
+                  <span className="text-gray-300">CodeWithHarry</span>
+                  <span className="material-symbols-outlined text-gray-500 text-sm ml-auto">open_in_new</span>
+                </a>
               </div>
             </div>
             
-            {/* Current Code Step */}
+            {/* Tips Card */}
             <div className="glass-panel rounded-2xl p-4">
               <h3 className="text-xs text-gray-500 font-mono mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-sm">terminal</span>
-                CURRENT LINE
+                <span className="material-symbols-outlined text-yellow-400 text-sm">lightbulb</span>
+                TIPS FOR BEGINNERS
               </h3>
-              <div className="bg-[#0D1117] rounded-lg p-4">
-                <code className="font-mono text-sm text-cyan-400">
-                  {currentStep?.code || '# Waiting...'}
-                </code>
-              </div>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Read each step carefully</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Try typing the code yourself</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Don't skip! Practice makes perfect</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Ask questions if confused</span>
+                </li>
+              </ul>
             </div>
             
             {/* Problem Info */}
             <div className="glass-panel rounded-2xl p-4">
-              <h3 className="text-xs text-gray-500 font-mono mb-3">PROBLEM INFO</h3>
-              <p className="text-sm text-gray-400 mb-4">{problem?.description}</p>
-              
+              <h3 className="text-xs text-gray-500 font-mono mb-3">LESSON INFO</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Difficulty</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    problem?.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                    problem?.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-red-500/20 text-red-400'
-                  }`}>
-                    {problem?.difficulty}
+                  <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">
+                    {problem?.difficulty || 'Beginner'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">XP Reward</span>
                   <span className="text-xs text-primary">+{problem?.xpReward || 50} XP</span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Category</span>
+                  <span className="text-xs text-cyan-400">{problem?.zone || 'Python Basics'}</span>
+                </div>
               </div>
             </div>
             
             {/* Proceed Button */}
             {canProceed && (
-              <motion.button
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleProceedToGuided}
-                className="w-full py-4 rounded-xl btn-primary font-bold flex items-center justify-center gap-3"
+                className="w-full py-4 rounded-xl btn-primary font-bold flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform"
               >
-                <span className="material-symbols-outlined">arrow_forward</span>
-                PROCEED TO GUIDED CODING
-              </motion.button>
+                <span className="material-symbols-outlined">code</span>
+                START CODING
+              </button>
             )}
           </div>
         </div>
         
-        {/* Prediction Modal */}
-        <AnimatePresence>
-          {showPrediction && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-void/90 flex items-center justify-center z-50"
-            >
-              <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 20 }}
-                className="glass-panel-strong rounded-2xl p-8 max-w-md w-full mx-4 border-2 border-primary/50"
-              >
-                <div className="text-center mb-6">
-                  <span className="material-symbols-outlined text-5xl text-primary mb-4">psychology</span>
-                  <h2 className="text-xl font-bold mb-2">[SYSTEM] Prediction Checkpoint</h2>
-                  <p className="text-sm text-gray-400">What do you think happens next?</p>
-                </div>
-                
-                {!predictionResult ? (
-                  <>
-                    <textarea
-                      value={userPrediction}
-                      onChange={(e) => setUserPrediction(e.target.value)}
-                      placeholder="Describe what you think the next step will be..."
-                      className="w-full h-32 px-4 py-3 rounded-lg bg-void border border-gray-700 text-white placeholder-gray-500 focus:border-primary focus:outline-none resize-none mb-4"
-                    />
-                    <button
-                      onClick={handlePrediction}
-                      disabled={!userPrediction.trim()}
-                      className="w-full py-3 rounded-lg btn-primary font-bold disabled:opacity-50"
-                    >
-                      Submit Prediction
-                    </button>
-                  </>
-                ) : (
-                  <div className={`text-center p-6 rounded-lg ${
-                    predictionResult.correct ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'
-                  }`}>
-                    <span className={`material-symbols-outlined text-4xl ${
-                      predictionResult.correct ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {predictionResult.correct ? 'check_circle' : 'cancel'}
-                    </span>
-                    <p className={`mt-2 ${predictionResult.correct ? 'text-green-400' : 'text-red-400'}`}>
-                      {predictionResult.message}
+        {/* Prediction Modal - Simplified with Skip Button */}
+        {showPrediction && (
+          <div className="fixed inset-0 bg-void/90 flex items-center justify-center z-50">
+            <div className="glass-panel-strong rounded-2xl p-8 max-w-lg w-full mx-4 border-2 border-primary/50">
+              <div className="text-center mb-6">
+                <span className="text-5xl mb-4 block">🤔</span>
+                <h2 className="text-xl font-bold mb-2">Quick Question!</h2>
+                <p className="text-sm text-gray-400">Let's check what you learned</p>
+              </div>
+              
+              {!predictionResult ? (
+                <>
+                  {currentPrediction ? (
+                    <>
+                      <p className="text-center text-lg text-gray-300 mb-6">
+                        {currentPrediction.question}
+                      </p>
+                      
+                      {/* Multiple Choice Options */}
+                      {currentPrediction.options && (
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                          {currentPrediction.options.map((option, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setSelectedPredictionOption(option)}
+                              className={`p-4 rounded-lg border-2 transition-all ${
+                                selectedPredictionOption === option
+                                  ? 'border-primary bg-primary/20 text-white'
+                                  : 'border-gray-700 bg-void hover:border-primary/50 text-gray-300'
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleSkipPrediction}
+                          className="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold transition-colors"
+                        >
+                          Skip →
+                        </button>
+                        <button
+                          onClick={() => handlePrediction(selectedPredictionOption)}
+                          disabled={!selectedPredictionOption}
+                          className="flex-1 py-3 rounded-lg btn-primary font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Submit Answer
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-center text-gray-300 mb-6">
+                        What do you think happens next in this code?
+                      </p>
+                      <textarea
+                        value={userPrediction}
+                        onChange={(e) => setUserPrediction(e.target.value)}
+                        placeholder="Type your answer here..."
+                        className="w-full h-24 px-4 py-3 rounded-lg bg-void border border-gray-700 text-white placeholder-gray-500 focus:border-primary focus:outline-none resize-none mb-4"
+                      />
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleSkipPrediction}
+                          className="flex-1 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold transition-colors"
+                        >
+                          Skip →
+                        </button>
+                        <button
+                          onClick={() => handlePrediction(userPrediction)}
+                          disabled={!userPrediction.trim()}
+                          className="flex-1 py-3 rounded-lg btn-primary font-bold disabled:opacity-50"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className={`text-center p-6 rounded-lg ${
+                  predictionResult.correct ? 'bg-green-500/10 border border-green-500/30' : 'bg-orange-500/10 border border-orange-500/30'
+                }`}>
+                  <span className="text-4xl block mb-3">
+                    {predictionResult.correct ? '🎉' : '💪'}
+                  </span>
+                  <p className={`text-lg font-bold ${predictionResult.correct ? 'text-green-400' : 'text-orange-400'}`}>
+                    {predictionResult.message}
+                  </p>
+                  {predictionResult.explanation && (
+                    <p className="text-gray-400 mt-3 text-sm">
+                      {predictionResult.explanation}
                     </p>
-                  </div>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

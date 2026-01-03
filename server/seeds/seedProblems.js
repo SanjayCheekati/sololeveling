@@ -5,32 +5,741 @@ const Problem = require('../models/Problem');
 dotenv.config();
 
 const problems = [
-  // ==================== ARRAYS ZONE ====================
+  // ==================== PYTHON BASICS - AWAKENING TUTORIALS ====================
+  // Reference: w3schools.com/python, codewithharry.com
   {
-    title: "Array Awakening",
-    slug: "array-awakening",
-    description: `# Array Awakening
+    title: "Your First Python Program",
+    slug: "hello-world",
+    description: `# 🎮 Welcome, New Hunter!
 
-The System has detected your presence. Before you can become a Hunter, you must understand the fundamental data structure: **Arrays**.
+You have awakened! Before you can conquer dungeons, you must learn the language of power: **Python**.
 
-An array is a contiguous block of memory that stores elements of the same type. Think of it as a row of numbered boxes.
+## What is Python?
+Python is a programming language - it's how we talk to computers! Think of it like learning a new language, but instead of talking to people, you're talking to your computer.
 
-## Your Task
-Given an array of integers, return the sum of all elements.
+## Your First Task
+Every programmer starts with the same first spell: **"Hello, World!"**
 
-## Concept Focus
-- Array traversal
-- Accumulator pattern`,
+This is like saying "I'm here!" to the programming world.`,
     zone: "arrays",
     difficulty: "tutorial",
     rank: "E",
     availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "What is Programming?",
+          content: `**Programming** is giving instructions to a computer. Just like you follow a recipe to make food, computers follow our code to do tasks!
+
+🍕 **Real Life Example:**
+- Recipe: "Add flour, then add water, then mix"
+- Code: "print this, then calculate that, then show result"`,
+          type: "intro",
+          explanation: "Think of code as a recipe. Each line is one step the computer follows, one after another!"
+        },
+        {
+          title: "The print() Function",
+          content: `The **print()** function tells Python to show something on screen.
+
+It's like telling your computer: "Hey, display this message!"`,
+          code: `# This is how we print in Python
+print("Hello, World!")
+
+# You can print anything!
+print("My name is Hunter")
+print(42)
+print("I am", 10, "years old")`,
+          type: "explanation",
+          explanation: "Whatever you put inside print() will appear on your screen. It's the simplest way to see what your program is doing!"
+        },
+        {
+          title: "Try It Yourself",
+          content: `Now let's see if you understood!
+
+The **print()** function:
+- Always uses parentheses ( )
+- Text goes inside quotes " "
+- Numbers don't need quotes`,
+          code: `print("Hello")      # ✅ Correct - text in quotes
+print(123)          # ✅ Correct - numbers without quotes  
+print(Hello)        # ❌ Wrong - text needs quotes!`,
+          type: "example",
+          tryIt: "Try changing the message inside print() to say your name!"
+        },
+        {
+          title: "Quick Check!",
+          content: "Let's test what you learned about print()!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "What will print(\"Python\") display?",
+          correctAnswer: "Python",
+          options: ["Python", "print", "\"Python\"", "Error"],
+          explanation: "print() shows whatever is inside the quotes - in this case, the word Python!"
+        }
+      ]
+    },
+    starterCode: `# Your first Python program!
+# Type your code below and click Run
+
+print("Hello, World!")`,
+    solutionCode: `print("Hello, World!")`,
+    testCases: [
+      { input: "none", expectedOutput: "Hello, World!", isHidden: false }
+    ],
+    hints: [
+      { text: "Use print() with quotes around your text", cost: 10 },
+      { text: "Make sure to spell 'Hello, World!' exactly", cost: 20 }
+    ],
+    examples: [
+      { input: "none", output: "Hello, World!", explanation: "The print function displays the text on screen" }
+    ],
+    predictions: [
+      {
+        question: "What will print(\"Python\") display?",
+        correctAnswer: "Python",
+        options: ["Python", "print", "\"Python\"", "Error"],
+        explanation: "print() shows whatever is inside the quotes!"
+      }
+    ],
+    objectives: [
+      { description: "Write the print function", order: 1, hint: "Start with print(" },
+      { description: "Add the message in quotes", order: 2, hint: "\"Hello, World!\"" },
+      { description: "Close the parentheses", order: 3, hint: ")" }
+    ],
+    xpReward: 25,
+    goldReward: 15,
+    firstTimeBonus: 20,
+    statsGain: { intelligence: 1 },
+    order: 0,
+    tags: ["python-basics", "print", "beginner", "tutorial"]
+  },
+  {
+    title: "Variables - Your Data Storage",
+    slug: "variables-intro",
+    description: `# 📦 Variables - Storing Your Power
+
+Hunters need to store their items. In Python, we store data in **variables**!
+
+A variable is like a labeled box where you can put stuff and get it back later.`,
+    zone: "arrays",
+    difficulty: "tutorial",
+    rank: "E",
+    availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "What are Variables?",
+          content: `A **variable** is like a labeled box that stores information.
+
+📦 **Real Life Example:**
+- You have a box labeled "toys" - you put toys in it
+- In Python, you have a variable named "age" - you put a number in it
+
+**Why use variables?**
+- Store information to use later
+- Give data meaningful names
+- Change values easily`,
+          type: "intro",
+          explanation: "Variables are like labeled jars in your kitchen. The label tells you what's inside!"
+        },
+        {
+          title: "Creating Variables",
+          content: `Creating a variable is easy! Just pick a name and use **=** to put something in it.`,
+          code: `# Creating variables
+name = "Hunter"        # Stores text (string)
+age = 15               # Stores a number (integer)
+health = 100.5         # Stores a decimal (float)
+is_alive = True        # Stores True or False (boolean)
+
+# Now we can use them!
+print(name)            # Shows: Hunter
+print(age)             # Shows: 15
+print("HP:", health)   # Shows: HP: 100.5`,
+          type: "explanation",
+          explanation: "The = sign doesn't mean 'equals' here - it means 'store this value in this box'!"
+        },
+        {
+          title: "Variable Naming Rules",
+          content: `**Good variable names:**
+- Start with a letter or underscore
+- Use lowercase letters
+- Use underscores for spaces
+- Be descriptive!`,
+          code: `# ✅ Good names
+player_name = "Sung"
+max_health = 100
+current_level = 5
+
+# ❌ Bad names (will cause errors!)
+# 2fast = 10        # Can't start with number
+# my-name = "Bob"   # Can't use hyphens
+# class = "Warrior" # Can't use Python keywords`,
+          type: "example",
+          tryIt: "Create a variable called 'my_power' and store the number 50 in it!"
+        },
+        {
+          title: "Quick Check!",
+          content: "Let's test your variable knowledge!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "If x = 10, what does print(x) show?",
+          correctAnswer: "10",
+          options: ["x", "10", "\"x\"", "Error"],
+          explanation: "print(x) shows the VALUE stored in x, which is 10!"
+        }
+      ]
+    },
+    starterCode: `# Create variables to store your hunter info
+name = "Your Name"
+level = 1
+health = 100
+
+# Print your stats
+print("Hunter:", name)
+print("Level:", level)
+print("Health:", health)`,
+    solutionCode: `name = "Hunter"
+level = 1
+health = 100
+print("Hunter:", name)
+print("Level:", level)
+print("Health:", health)`,
+    testCases: [
+      { input: "none", expectedOutput: "Hunter:", isHidden: false }
+    ],
+    hints: [
+      { text: "Variable names go on the left of =", cost: 10 },
+      { text: "Values go on the right of =", cost: 20 }
+    ],
+    examples: [
+      { input: "none", output: "Hunter: Sung\nLevel: 1\nHealth: 100", explanation: "Variables store values that we can print later" }
+    ],
+    predictions: [
+      {
+        question: "If x = 10, what does print(x) show?",
+        correctAnswer: "10",
+        options: ["x", "10", "\"x\"", "Error"],
+        explanation: "print(x) shows the VALUE stored in x, which is 10!"
+      }
+    ],
+    objectives: [
+      { description: "Create a name variable", order: 1 },
+      { description: "Create a level variable", order: 2 },
+      { description: "Print the variables", order: 3 }
+    ],
+    xpReward: 30,
+    goldReward: 20,
+    firstTimeBonus: 25,
+    statsGain: { intelligence: 1 },
+    order: 1,
+    tags: ["python-basics", "variables", "beginner", "tutorial"]
+  },
+  {
+    title: "Math Operations - Calculator Powers",
+    slug: "basic-math",
+    description: `# 🔢 Math in Python - Your Calculator Powers
+
+Python can do math for you! Let's learn the basic operations every Hunter needs.`,
+    zone: "arrays",
+    difficulty: "tutorial",
+    rank: "E",
+    availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "Python as a Calculator",
+          content: `Python is great at math! You can use it like a super-powered calculator.
+
+**Basic Math Symbols:**
+| Symbol | Meaning | Example |
+|--------|---------|---------|
+| + | Addition | 5 + 3 = 8 |
+| - | Subtraction | 10 - 4 = 6 |
+| * | Multiplication | 4 * 3 = 12 |
+| / | Division | 15 / 3 = 5 |`,
+          type: "intro",
+          explanation: "The * symbol means multiply (not x), and / means divide!"
+        },
+        {
+          title: "Doing Math",
+          content: `Let's see math in action!`,
+          code: `# Basic operations
+print(10 + 5)    # Addition: 15
+print(20 - 8)    # Subtraction: 12
+print(6 * 7)     # Multiplication: 42
+print(100 / 4)   # Division: 25.0
+
+# You can store results in variables!
+damage = 50
+critical_bonus = 20
+total_damage = damage + critical_bonus
+print("Total Damage:", total_damage)  # 70`,
+          type: "explanation",
+          explanation: "Notice that division (/) always gives a decimal number, even if it divides evenly!"
+        },
+        {
+          title: "More Math Powers",
+          content: `Python has some extra math tricks:`,
+          code: `# Power (exponent) - using **
+print(2 ** 3)      # 2 to the power of 3 = 8
+print(10 ** 2)     # 10 squared = 100
+
+# Integer Division - using //
+print(17 // 5)     # Divides and rounds down = 3
+
+# Remainder (modulo) - using %
+print(17 % 5)      # Remainder after dividing = 2
+
+# Useful example:
+# Is a number even or odd?
+number = 7
+remainder = number % 2
+print(remainder)   # 1 means odd, 0 means even`,
+          type: "example",
+          tryIt: "Calculate: if you have 100 gold and buy 3 items at 25 gold each, how much gold is left?"
+        },
+        {
+          title: "Quick Check!",
+          content: "Time to test your math powers!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "What is 10 + 5 * 2?",
+          correctAnswer: "20",
+          options: ["30", "20", "25", "17"],
+          explanation: "Python follows math order: multiplication first (5*2=10), then addition (10+10=20)!"
+        }
+      ]
+    },
+    starterCode: `# Calculate your battle stats!
+base_attack = 25
+weapon_bonus = 15
+level_multiplier = 2
+
+# Calculate total attack power
+total_attack = base_attack + weapon_bonus
+final_attack = total_attack * level_multiplier
+
+print("Base Attack:", base_attack)
+print("Weapon Bonus:", weapon_bonus)
+print("Final Attack Power:", final_attack)`,
+    solutionCode: `base_attack = 25
+weapon_bonus = 15
+level_multiplier = 2
+total_attack = base_attack + weapon_bonus
+final_attack = total_attack * level_multiplier
+print("Final Attack Power:", final_attack)`,
+    testCases: [
+      { input: "none", expectedOutput: "80", isHidden: false }
+    ],
+    hints: [
+      { text: "Use + for addition, * for multiplication", cost: 10 },
+      { text: "Store intermediate results in variables", cost: 20 }
+    ],
+    examples: [
+      { input: "none", output: "Final Attack Power: 80", explanation: "(25 + 15) * 2 = 80" }
+    ],
+    predictions: [
+      {
+        question: "What is 10 + 5 * 2?",
+        correctAnswer: "20",
+        options: ["30", "20", "25", "17"],
+        explanation: "Multiplication happens before addition: 5*2=10, then 10+10=20"
+      }
+    ],
+    objectives: [
+      { description: "Calculate total attack (base + bonus)", order: 1 },
+      { description: "Multiply by level_multiplier", order: 2 },
+      { description: "Print the final result", order: 3 }
+    ],
+    xpReward: 35,
+    goldReward: 25,
+    firstTimeBonus: 25,
+    statsGain: { intelligence: 1, strength: 1 },
+    order: 2,
+    tags: ["python-basics", "math", "operators", "beginner", "tutorial"]
+  },
+  {
+    title: "If Statements - Making Decisions",
+    slug: "if-statements",
+    description: `# 🔀 If Statements - The Power of Choice
+
+A true Hunter must make decisions! **If statements** let your code choose different paths.`,
+    zone: "arrays",
+    difficulty: "tutorial",
+    rank: "E",
+    availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "What are If Statements?",
+          content: `**If statements** let your code make decisions, just like you do every day!
+
+🎮 **Real Life Example:**
+- IF it's raining → take an umbrella
+- IF you're hungry → eat food
+- IF enemy health is 0 → you win!
+
+In Python, we write conditions that are either **True** or **False**.`,
+          type: "intro",
+          explanation: "Think of if statements as asking yes/no questions. If yes (True), do something!"
+        },
+        {
+          title: "Writing If Statements",
+          content: `Here's how to write an if statement:`,
+          code: `# Basic if statement
+health = 100
+
+if health > 0:
+    print("You are alive!")
+
+# The code inside only runs if the condition is True
+# Notice the colon : and the indentation (spaces)!
+
+# Another example:
+level = 5
+if level >= 5:
+    print("You can enter the dungeon!")`,
+          type: "explanation",
+          explanation: "Important: The code inside the if MUST be indented (4 spaces). This tells Python what belongs to the if!"
+        },
+        {
+          title: "Comparison Operators",
+          content: `To make decisions, we compare things:
+
+| Symbol | Meaning | Example |
+|--------|---------|---------|
+| == | Equals | age == 18 |
+| != | Not equals | name != "Bob" |
+| > | Greater than | score > 100 |
+| < | Less than | health < 50 |
+| >= | Greater or equal | level >= 10 |
+| <= | Less or equal | gold <= 0 |`,
+          code: `age = 15
+gold = 50
+
+if age >= 13:
+    print("You can play this game!")
+
+if gold >= 100:
+    print("You can buy the sword!")
+else:
+    print("Not enough gold!")`,
+          type: "example",
+          tryIt: "Write an if statement that prints 'Level Up!' if experience is 100 or more"
+        },
+        {
+          title: "Quick Check!",
+          content: "Let's test your decision-making powers!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "If health = 0, what does 'if health > 0: print(\"Alive\")' print?",
+          correctAnswer: "Nothing",
+          options: ["Alive", "Nothing", "Error", "0"],
+          explanation: "0 is NOT greater than 0, so the condition is False and nothing prints!"
+        }
+      ]
+    },
+    starterCode: `# Hunter Battle System
+player_health = 75
+enemy_health = 0
+
+# Check if player is alive
+if player_health > 0:
+    print("Player is still fighting!")
+
+# Check if enemy is defeated
+if enemy_health <= 0:
+    print("Enemy defeated! You win!")
+
+# YOUR TASK: Add an if statement to check
+# if player_health is less than 50 (low health warning)
+`,
+    solutionCode: `player_health = 75
+enemy_health = 0
+if player_health > 0:
+    print("Player is still fighting!")
+if enemy_health <= 0:
+    print("Enemy defeated!")
+if player_health < 50:
+    print("Warning: Low health!")`,
+    testCases: [
+      { input: "none", expectedOutput: "fighting", isHidden: false }
+    ],
+    hints: [
+      { text: "Use < for 'less than'", cost: 10 },
+      { text: "Don't forget the colon : after the condition", cost: 20 }
+    ],
+    examples: [
+      { input: "none", output: "Player is still fighting!\nEnemy defeated!", explanation: "Both conditions are True" }
+    ],
+    predictions: [
+      {
+        question: "If health = 0, what does 'if health > 0: print(\"Alive\")' print?",
+        correctAnswer: "Nothing",
+        options: ["Alive", "Nothing", "Error", "0"],
+        explanation: "0 is NOT greater than 0, so the condition is False!"
+      }
+    ],
+    objectives: [
+      { description: "Understand if statement syntax", order: 1 },
+      { description: "Use comparison operators correctly", order: 2 },
+      { description: "Add proper indentation", order: 3 }
+    ],
+    xpReward: 40,
+    goldReward: 30,
+    firstTimeBonus: 30,
+    statsGain: { intelligence: 2 },
+    order: 3,
+    tags: ["python-basics", "if-statements", "conditionals", "beginner", "tutorial"]
+  },
+  {
+    title: "Loops - Repeat Your Power",
+    slug: "loops-intro",
+    description: `# 🔄 Loops - Repeating Actions
+
+Sometimes you need to do something many times. **Loops** let you repeat code without writing it over and over!`,
+    zone: "arrays",
+    difficulty: "tutorial",
+    rank: "E",
+    availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "Why Use Loops?",
+          content: `Imagine you want to print "Attack!" 100 times. Would you write 100 print statements? NO!
+
+🔄 **Loops** repeat code automatically.
+
+**Real Life Example:**
+- "Do 10 pushups" = a loop that repeats 10 times
+- "Keep walking until you reach the store" = a loop with a condition`,
+          type: "intro",
+          explanation: "Loops are like telling someone: 'Keep doing this until I say stop!'"
+        },
+        {
+          title: "The For Loop",
+          content: `The **for loop** repeats code a specific number of times.`,
+          code: `# Print "Attack!" 5 times
+for i in range(5):
+    print("Attack!")
+
+# Output:
+# Attack!
+# Attack!
+# Attack!
+# Attack!
+# Attack!
+
+# The variable 'i' counts: 0, 1, 2, 3, 4
+for i in range(5):
+    print("Hit number:", i)`,
+          type: "explanation",
+          explanation: "range(5) creates numbers 0, 1, 2, 3, 4. The loop runs once for each number!"
+        },
+        {
+          title: "Loop Through Lists",
+          content: `You can also loop through a list of items:`,
+          code: `# Loop through a list of enemies
+enemies = ["Goblin", "Orc", "Dragon"]
+
+for enemy in enemies:
+    print("Fighting:", enemy)
+
+# Output:
+# Fighting: Goblin
+# Fighting: Orc
+# Fighting: Dragon
+
+# Calculate total damage
+damages = [10, 25, 15, 30]
+total = 0
+for damage in damages:
+    total = total + damage
+print("Total damage:", total)  # 80`,
+          type: "example",
+          tryIt: "Write a loop that prints numbers 1 to 5 (hint: use range(1, 6))"
+        },
+        {
+          title: "Quick Check!",
+          content: "Test your loop knowledge!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "How many times does 'for i in range(3):' repeat?",
+          correctAnswer: "3",
+          options: ["2", "3", "4", "1"],
+          explanation: "range(3) gives us 0, 1, 2 - that's 3 numbers, so 3 repetitions!"
+        }
+      ]
+    },
+    starterCode: `# Level up your skills with loops!
+
+# Print attack 3 times
+for i in range(3):
+    print("Attack!")
+
+# Calculate total XP from quests
+quest_xp = [50, 75, 100, 25]
+total_xp = 0
+
+for xp in quest_xp:
+    total_xp = total_xp + xp
+
+print("Total XP earned:", total_xp)`,
+    solutionCode: `for i in range(3):
+    print("Attack!")
+quest_xp = [50, 75, 100, 25]
+total_xp = 0
+for xp in quest_xp:
+    total_xp = total_xp + xp
+print("Total XP earned:", total_xp)`,
+    testCases: [
+      { input: "none", expectedOutput: "250", isHidden: false }
+    ],
+    hints: [
+      { text: "range(n) creates numbers from 0 to n-1", cost: 10 },
+      { text: "Use 'for item in list:' to go through each item", cost: 20 }
+    ],
+    examples: [
+      { input: "none", output: "Attack!\nAttack!\nAttack!\nTotal XP earned: 250", explanation: "Loop prints 3 times, then calculates sum" }
+    ],
+    predictions: [
+      {
+        question: "How many times does 'for i in range(3):' repeat?",
+        correctAnswer: "3",
+        options: ["2", "3", "4", "1"],
+        explanation: "range(3) = 0, 1, 2 = 3 repetitions!"
+      }
+    ],
+    objectives: [
+      { description: "Understand for loop syntax", order: 1 },
+      { description: "Use range() function", order: 2 },
+      { description: "Loop through lists", order: 3 }
+    ],
+    xpReward: 45,
+    goldReward: 35,
+    firstTimeBonus: 35,
+    statsGain: { intelligence: 2, agility: 1 },
+    order: 4,
+    tags: ["python-basics", "loops", "for-loop", "beginner", "tutorial"]
+  },
+  // ==================== ARRAYS ZONE ====================
+  {
+    title: "Array Awakening",
+    slug: "array-awakening",
+    description: `# 📚 Array Awakening - Your First Data Structure!
+
+Now that you know Python basics, it's time to learn about **Arrays** (called **Lists** in Python)!
+
+## What is a List?
+A list is like a backpack that can hold many items. Instead of creating 10 separate variables, you put them all in one list!
+
+## Your Task
+Given a list of numbers, add them all up and return the total.
+
+**Example:** [1, 2, 3, 4, 5] → 1+2+3+4+5 = **15**`,
+    zone: "arrays",
+    difficulty: "tutorial",
+    rank: "E",
+    availableInPhases: ["visualization", "guided", "autonomous"],
+    tutorialContent: {
+      sections: [
+        {
+          title: "What is a List (Array)?",
+          content: `A **list** is a collection of items stored in one variable.
+
+📦 **Real Life Example:**
+- Shopping list: ["apples", "bread", "milk"]
+- Your inventory: ["sword", "potion", "shield"]
+- Damage numbers: [10, 25, 15, 30]
+
+**Why use lists?**
+- Store many values in one place
+- Easy to add, remove, or find items
+- Loop through all items easily`,
+          type: "intro",
+          explanation: "Think of a list like a train with many cars. Each car holds one item, and they're all connected!"
+        },
+        {
+          title: "Creating and Using Lists",
+          content: `Here's how to create and use lists in Python:`,
+          code: `# Creating a list
+numbers = [1, 2, 3, 4, 5]
+enemies = ["Goblin", "Orc", "Dragon"]
+
+# Getting items by index (position)
+# Remember: counting starts at 0!
+print(numbers[0])   # First item: 1
+print(numbers[2])   # Third item: 3
+print(enemies[1])   # Second enemy: Orc
+
+# List length
+print(len(numbers))  # 5 items`,
+          type: "explanation",
+          explanation: "Index numbers start at 0, not 1! So the first item is at index 0, second at index 1, etc."
+        },
+        {
+          title: "Adding Up List Items",
+          content: `To solve our problem, we need to add all numbers in a list:`,
+          code: `# Method 1: Using a loop
+numbers = [1, 2, 3, 4, 5]
+total = 0                    # Start with 0
+
+for num in numbers:          # Go through each number
+    total = total + num      # Add it to total
+    # Same as: total += num
+
+print(total)                 # 15
+
+# Method 2: Using sum() function
+total = sum(numbers)         # Python does it for us!
+print(total)                 # 15`,
+          type: "example",
+          tryIt: "Try adding up [10, 20, 30] using a loop!"
+        },
+        {
+          title: "Quick Check!",
+          content: "Let's test your array knowledge!",
+          type: "checkpoint",
+          hasPrediction: true
+        }
+      ],
+      predictions: [
+        {
+          question: "In the list [5, 10, 15], what is the value at index 1?",
+          correctAnswer: "10",
+          options: ["5", "10", "15", "1"],
+          explanation: "Index 0 = 5, Index 1 = 10, Index 2 = 15. So index 1 gives us 10!"
+        }
+      ]
+    },
     starterCode: `def sum_array(arr):
     # Initialize your sum variable
     total = 0
     
-    # Traverse through each element
+    # Loop through each element and add to total
     # YOUR CODE HERE
+    for num in arr:
+        total = total + num
     
     return total
 
